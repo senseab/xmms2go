@@ -1,0 +1,3 @@
+XMMS2 IPC BINDINGS FOR GO
+=====
+
