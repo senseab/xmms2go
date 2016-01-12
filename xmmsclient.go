@@ -123,6 +123,27 @@ func (x *Xmms2Client) Tickle() error {
 
 }
 
+// Get Current ID
+func (x *Xmms2Client) CurrentID() (int, error) {
+	x.result = C.xmmsc_playback_current_id(x.Connection)
+	C.xmmsc_result_wait(x.result)
+	x.returnValue = C.xmmsc_result_get_value(x.result)
+	err := x.checkError("Get Current ID failed: %s")
+	if err != nil {
+		return -1, err
+	}
+	return x.GetInt()
+}
+
+// Get integer form return value
+func (x *Xmms2Client) GetInt() (int, error) {
+	var i C.int32_t
+	if int(C.xmmsv_get_int(x.returnValue, &i)) == 0 {
+		return -1, errors.New("Get Current ID failed")
+	}
+	return int(i), nil
+}
+
 /*
 You SHOULD use this when you quit.
 
@@ -146,4 +167,3 @@ func (x *Xmms2Client) checkError(hintString string) error {
 	}
 	return nil
 }
-

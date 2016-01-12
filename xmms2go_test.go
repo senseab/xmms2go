@@ -20,4 +20,9 @@ func TestA(t *testing.T) {
 		t.Error(err)
 	}
 
+	i, err := X.CurrentID()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Current Playing ID:", i)
 }
