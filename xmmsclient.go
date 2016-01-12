@@ -58,6 +58,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+    "unsafe"
 )
 
 // A class of xmmsclient
@@ -142,16 +143,49 @@ func (x *Xmms2Client) checkError(hintString string) error {
 		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
 		errInfo := interface{}(x.errorBuff)
 		return errors.New(fmt.Sprintf(
-			hintString, makeErrInfo(errInfo.([]*C.char)),
+			hintString, makeErrInfo(errInfo),
 		))
 	}
 	return nil
 }
 
-func makeErrInfo(info []*C.char) string {
-	r := ""
-	for i, a := range info {
-		r = fmt.Sprintf("%s%d %s ", r, i, C.GoString(a))
+func convertCharsToStrings(chars **C.char)[]string{
+    var v []string
+    size := unsafe.Sizeof(chars)
+    prev := uintptr(0)
+    current := uintptr(unsafe.Pointer(chars))
+    for {
+        k := (**C.char)(unsafe.Pointer(current))
+        v = append(v, C.GoString(*k))
+        prev = current
+        current += size
+        currentChar0 := getCharElement0(current)
+        prevChar0 := getCharElement0(prev)
+        /*
+        if currentChar0 is small than prevChar0,
+        it must have an invalid address
+        +----------------------------------------------+
+        | 0x0            | 0x4            | 0x8        |
+        +----------------------------------------------+
+        | A | B | C | \0 | D | E | F | \0 | G | H | \0 |
+        +----------------------------------------------+
+        */
+        if currentChar0 < prevChar0{
+            break
+        }
+    }
+    return v
+}
+
+func makeErrInfo(info **C.char) string {
+    v := convertCharsToStrings(info)
+    r := ""
+	for i, a := range v {
+		r = fmt.Sprintf("%s%d %s ", r, i, a)
 	}
 	return r
+}
+
+func getCharElement0(addr uintptr) uintptr{
+    return uintptr(unsafe.Pointer(*(**C.char)(unsafe.Pointer(addr))))
 }
