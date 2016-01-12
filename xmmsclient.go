@@ -31,6 +31,8 @@ Just import me to use.
     func main(){
         x := xmms2go.NewXmms2Client("test")
         err := x.Connect(os.Getenv("XMMS_PATH"))
+        // According to the documents of xmms2, some resources
+        // should be released. So Unref() is necessary.
         defer x.Unref()
         if err != nil {
             fmt.Println(err)
@@ -88,7 +90,7 @@ func (x *Xmms2Client) Connect(url string) error {
 	return nil
 }
 
-// Make xmms server play.
+// Start playback.
 func (x *Xmms2Client) Play() error {
 	x.result = C.xmmsc_playback_start(x.Connection)
 	C.xmmsc_result_wait(x.result)
@@ -101,6 +103,54 @@ func (x *Xmms2Client) Play() error {
 		))
 	}
 	return nil
+}
+
+// Pause playback.
+func (x *Xmms2Client) Pause() error {
+	x.result = C.xmmsc_playback_pause(x.Connection)
+	C.xmmsc_result_wait(x.result)
+	x.returnValue = C.xmmsc_result_get_value(x.result)
+	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
+		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
+		errInfo := interface{}(x.errorBuff)
+		return errors.New(fmt.Sprintf(
+			"Playback pause returned error: %s", makeErrInfo(errInfo.([]*C.char)),
+		))
+	}
+	return nil
+
+}
+
+// Stop playback.
+func (x *Xmms2Client) Stop() error {
+	x.result = C.xmmsc_playback_stop(x.Connection)
+	C.xmmsc_result_wait(x.result)
+	x.returnValue = C.xmmsc_result_get_value(x.result)
+	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
+		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
+		errInfo := interface{}(x.errorBuff)
+		return errors.New(fmt.Sprintf(
+			"Playback stop returned error: %s", makeErrInfo(errInfo.([]*C.char)),
+		))
+	}
+	return nil
+
+}
+
+// Stop decoding of current song.
+func (x *Xmms2Client) Tickle() error {
+	x.result = C.xmmsc_playback_tickle(x.Connection)
+	C.xmmsc_result_wait(x.result)
+	x.returnValue = C.xmmsc_result_get_value(x.result)
+	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
+		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
+		errInfo := interface{}(x.errorBuff)
+		return errors.New(fmt.Sprintf(
+			"Playback pause returned error: %s", makeErrInfo(errInfo.([]*C.char)),
+		))
+	}
+	return nil
+
 }
 
 /*
