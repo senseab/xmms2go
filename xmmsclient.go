@@ -14,7 +14,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 /*
 Xmms2Go is a Go binding for libxmmsclient.
@@ -83,7 +83,7 @@ Connect to xmms server, both tcp or unix socket are works.
 */
 func (x *Xmms2Client) Connect(url string) error {
 	r := C.xmmsc_connect(x.Connection, C.CString(url))
-	if interface{}(r) == nil {
+	if int(r) == 0 {
 		errInfo := C.GoString(C.xmmsc_get_last_error(x.Connection))
 		return errors.New(fmt.Sprintf("Connection failed: %s", errInfo))
 	}
@@ -95,14 +95,7 @@ func (x *Xmms2Client) Play() error {
 	x.result = C.xmmsc_playback_start(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
-	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
-		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
-		errInfo := interface{}(x.errorBuff)
-		return errors.New(fmt.Sprintf(
-			"Playback start returned error: %s", makeErrInfo(errInfo.([]*C.char)),
-		))
-	}
-	return nil
+	return x.checkError("Playback start returned error: %s")
 }
 
 // Pause playback.
@@ -110,15 +103,7 @@ func (x *Xmms2Client) Pause() error {
 	x.result = C.xmmsc_playback_pause(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
-	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
-		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
-		errInfo := interface{}(x.errorBuff)
-		return errors.New(fmt.Sprintf(
-			"Playback pause returned error: %s", makeErrInfo(errInfo.([]*C.char)),
-		))
-	}
-	return nil
-
+	return x.checkError("Playback pause returned error: %s")
 }
 
 // Stop playback.
@@ -126,15 +111,7 @@ func (x *Xmms2Client) Stop() error {
 	x.result = C.xmmsc_playback_stop(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
-	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
-		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
-		errInfo := interface{}(x.errorBuff)
-		return errors.New(fmt.Sprintf(
-			"Playback stop returned error: %s", makeErrInfo(errInfo.([]*C.char)),
-		))
-	}
-	return nil
-
+	return x.checkError("Playback stop returned error: %s")
 }
 
 // Stop decoding of current song.
@@ -142,14 +119,7 @@ func (x *Xmms2Client) Tickle() error {
 	x.result = C.xmmsc_playback_tickle(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
-	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
-		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
-		errInfo := interface{}(x.errorBuff)
-		return errors.New(fmt.Sprintf(
-			"Playback pause returned error: %s", makeErrInfo(errInfo.([]*C.char)),
-		))
-	}
-	return nil
+	return x.checkError("Playback tickle returned error: %s")
 
 }
 
@@ -165,6 +135,17 @@ You SHOULD use this when you quit.
 func (x *Xmms2Client) Unref() {
 	C.xmmsc_result_unref(x.result)
 	C.xmmsc_unref(x.Connection)
+}
+
+func (x *Xmms2Client) checkError(hintString string) error {
+	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
+		int(C.xmmsv_get_error(x.returnValue, x.errorBuff)) != 0 {
+		errInfo := interface{}(x.errorBuff)
+		return errors.New(fmt.Sprintf(
+			hintString, makeErrInfo(errInfo.([]*C.char)),
+		))
+	}
+	return nil
 }
 
 func makeErrInfo(info []*C.char) string {

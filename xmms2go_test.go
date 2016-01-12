@@ -5,9 +5,11 @@ import "os"
 
 func TestA(t *testing.T) {
 	X, err := NewXmms2Client("xmms2go-test")
+	defer X.Unref()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = X.Connect(os.Getenv("XMMS_PATH"))
 	if err != nil {
 		t.Error(err)
@@ -18,5 +20,4 @@ func TestA(t *testing.T) {
 		t.Error(err)
 	}
 
-	X.Unref()
 }
