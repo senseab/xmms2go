@@ -83,7 +83,7 @@ Connect to xmms server, both tcp or unix socket are works.
 */
 func (x *Xmms2Client) Connect(url string) error {
 	r := C.xmmsc_connect(x.Connection, C.CString(url))
-	if int(r) == 0 {
+	if r == 0 {
 		errInfo := C.GoString(C.xmmsc_get_last_error(x.Connection))
 		return errors.New(fmt.Sprintf("Connection failed: %s", errInfo))
 	}
