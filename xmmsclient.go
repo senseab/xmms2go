@@ -1,63 +1,23 @@
-/*
-Xmms2Go -- A golang binding to libxmmsclient.
-Copyright (C) 2016  TonyChyi <tonychee1989@gmail.com>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/*
-Xmms2Go is a Go binding for libxmmsclient.
-It's easy to use and friendly for go developers.
-Just import me to use.
-
-    package main
-    import(
-        "github.com/tonychee7000/xmms2go"
-        "os"
-        "fmt"
-    )
-
-    func main(){
-        x := xmms2go.NewXmms2Client("test")
-        err := x.Connect(os.Getenv("XMMS_PATH"))
-        // According to the documents of xmms2, some resources
-        // should be released. So Unref() is necessary.
-        defer x.Unref()
-        if err != nil {
-            fmt.Println(err)
-            os.Exit(1)
-        }
-
-        err := x.Play()
-        if err != nil {
-            fmt.Println(err)
-        }
-    }
-
-*/
 package xmms2go
 
 /*
+#ifndef XMMS2GO
+#define XMMS2GO
 #cgo CFLAGS: -I/usr/include/xmms2
-#cgo LDFLAGS: -L/usr/lib -lxmmsclient
+#cgo LDFLAGS: -lxmmsclient
 #include <xmmsclient/xmmsclient.h>
-#include <xmmsc/xmmsv.h>
+#include <malloc.h>
+
+static int macro_xmmsc_result_iserror(xmmsc_result_t *val) {
+    return xmmsc_result_iserror(val);
+}
+#endif
 */
 import "C"
 import (
 	"errors"
 	"fmt"
+    "unsafe"
 )
 
 // A class of xmmsclient
@@ -71,7 +31,9 @@ type Xmms2Client struct {
 // Make new xmmsclient instance.
 func NewXmms2Client(clientName string) (*Xmms2Client, error) {
 	x := new(Xmms2Client)
-	x.Connection = C.xmmsc_init(C.CString(clientName))
+    cClientName := C.CString(clientName)
+    defer C.free(unsafe.Pointer(cClientName))
+	x.Connection = C.xmmsc_init(cClientName)
 	if x.Connection == nil {
 		return nil, errors.New("Client init failed")
 	}
@@ -80,9 +42,16 @@ func NewXmms2Client(clientName string) (*Xmms2Client, error) {
 
 /*
 Connect to xmms server, both tcp or unix socket are works.
+    
+    x = NewXmms2Client("test")
+    x.Connect("unix://somewhere")
+    x.Connect("tcp://somewhere")
+
 */
 func (x *Xmms2Client) Connect(url string) error {
-	r := C.xmmsc_connect(x.Connection, C.CString(url))
+    cUrl := C.CString(url)
+    defer C.free(unsafe.Pointer(cUrl))
+	r := C.xmmsc_connect(x.Connection, cUrl)
 	if r == 0 {
 		errInfo := C.GoString(C.xmmsc_get_last_error(x.Connection))
 		return errors.New(fmt.Sprintf("Connection failed: %s", errInfo))
@@ -90,8 +59,11 @@ func (x *Xmms2Client) Connect(url string) error {
 	return nil
 }
 
+// --- Playback operations ---
+
 // Start playback.
 func (x *Xmms2Client) Play() error {
+    defer x.ResultUnref()
 	x.result = C.xmmsc_playback_start(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -100,6 +72,7 @@ func (x *Xmms2Client) Play() error {
 
 // Pause playback.
 func (x *Xmms2Client) Pause() error {
+    defer x.ResultUnref()
 	x.result = C.xmmsc_playback_pause(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -108,6 +81,7 @@ func (x *Xmms2Client) Pause() error {
 
 // Stop playback.
 func (x *Xmms2Client) Stop() error {
+    defer x.ResultUnref()
 	x.result = C.xmmsc_playback_stop(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -116,6 +90,7 @@ func (x *Xmms2Client) Stop() error {
 
 // Stop decoding of current song.
 func (x *Xmms2Client) Tickle() error {
+    defer x.ResultUnref()
 	x.result = C.xmmsc_playback_tickle(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -123,25 +98,41 @@ func (x *Xmms2Client) Tickle() error {
 
 }
 
-// Get Current ID
+// Get Current ID. If failed, return -1 and error info
 func (x *Xmms2Client) CurrentID() (int, error) {
+    defer x.ResultUnref()
 	x.result = C.xmmsc_playback_current_id(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
-	err := x.checkError("Get Current ID failed: %s")
+	err := x.checkError("Get current ID failed: %s")
 	if err != nil {
 		return -1, err
 	}
-	return x.GetInt()
+	return GetInt(x.returnValue)
 }
 
-// Get integer form return value
-func (x *Xmms2Client) GetInt() (int, error) {
-	var i C.int32_t
-	if int(C.xmmsv_get_int(x.returnValue, &i)) == 0 {
-		return -1, errors.New("Get Current ID failed")
-	}
-	return int(i), nil
+// --- Medialib operations ---
+
+// Get medialib info
+func (x *Xmms2Client) MediaLibInfo(id int) (map[string]interface{}, error) {
+    defer x.ResultUnref()
+    m := make(map[string]interface{})
+    x.result = C.xmmsc_medialib_get_info(x.Connection, C.int(id))
+    C.xmmsc_result_wait(x.result)
+    x.returnValue = C.xmmsc_result_get_value(x.result)
+    err := x.checkError("Get medialib info failed: %s")
+    if err != nil {
+        return nil, err
+    }
+    // TODO: new dict func
+    return m, nil
+}
+
+// --- Clean operations ---
+
+// Every operation is done, clear memeory is needed.
+func (x *Xmms2Client) ResultUnref() {
+	C.xmmsc_result_unref(x.result)
 }
 
 /*
@@ -154,16 +145,40 @@ You SHOULD use this when you quit.
 
 */
 func (x *Xmms2Client) Unref() {
-	C.xmmsc_result_unref(x.result)
+	x.ResultUnref() // ensure result unref
 	C.xmmsc_unref(x.Connection)
 }
 
+// --- Private operations ---
+
 func (x *Xmms2Client) checkError(hintString string) error {
-	if int(C.xmmsv_is_error(x.returnValue)) != 0 &&
-		int(C.xmmsv_get_error(x.returnValue, &x.errorBuff)) != 0 {
+	if int(C.macro_xmmsc_result_iserror(x.result)) != 0 {
+        x.errorBuff = C.xmmsc_get_last_error(x.Connection)
 		return errors.New(fmt.Sprintf(
 			hintString, C.GoString(x.errorBuff),
 		))
 	}
 	return nil
 }
+
+// --- Data operations ---
+
+// Get integer form xmmsv_t
+func GetInt(x *C.xmmsv_t) (int, error) {
+	var i C.int32_t
+	if int(C.xmmsv_get_int(x, &i)) == 0 {
+		return -1, errors.New("Parse int failed")
+	}
+	return int(i), nil
+}
+
+// Get string from xmmsv_t
+func GetString(x *C.xmmsv_t) (string, error){
+    var s *C.char
+    if int(C.xmmsv_get_string(x, &s)) == 0 {
+        return "", errors.New("Parse string failed")
+    }
+    return C.GoString(s), nil
+}
+
+

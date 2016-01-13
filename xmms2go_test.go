@@ -3,7 +3,7 @@ package xmms2go
 import "testing"
 import "os"
 
-func TestA(t *testing.T) {
+func TestClient(t *testing.T) {
 	X, err := NewXmms2Client("xmms2go-test")
 	defer X.Unref()
 	if err != nil {
@@ -26,3 +26,4 @@ func TestA(t *testing.T) {
 	}
 	t.Log("Current Playing ID:", i)
 }
+
