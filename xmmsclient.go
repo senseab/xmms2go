@@ -158,6 +158,7 @@ func (x *Xmms2Client) checkError(hintString string) error {
 			hintString, C.GoString(x.errorBuff),
 		))
 	}
+	defer C.free(unsafe.Pointer(x.errorBuff))
 	return nil
 }
 
