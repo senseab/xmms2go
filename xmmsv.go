@@ -137,7 +137,7 @@ func (x *Value) GetBytes(length uint) ([]byte, error){
     var b *C.uchar
     defer C.free(unsafe.Pointer(b))
     cLength := C.uint(length)
-    r := C.xmmsv_get_bin(x.data, &b, &cLength)
+    r := int(C.xmmsv_get_bin(x.data, &b, &cLength))
     if r == 0{
         return nil, errors.New("Parse type bytes failed")
     }
@@ -147,6 +147,14 @@ func (x *Value) GetBytes(length uint) ([]byte, error){
 
 // Okay, we need to implement the collection type.
 //func (x *Value) GetCollection() (*Collection, error)
+
+func (x *Value) IsError() bool{
+    r := int(C.xmmsv_is_error(x.data))
+    if r == 1 {
+        return true
+    }
+    return false
+}
 
 // XmmsDict
 type Dict struct {
