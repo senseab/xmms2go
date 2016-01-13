@@ -26,4 +26,3 @@ func TestClient(t *testing.T) {
 	}
 	t.Log("Current Playing ID:", i)
 }
-

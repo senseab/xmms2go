@@ -17,7 +17,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
-    "unsafe"
+	"unsafe"
 )
 
 // A class of xmmsclient
@@ -31,8 +31,8 @@ type Xmms2Client struct {
 // Make new xmmsclient instance.
 func NewXmms2Client(clientName string) (*Xmms2Client, error) {
 	x := new(Xmms2Client)
-    cClientName := C.CString(clientName)
-    defer C.free(unsafe.Pointer(cClientName))
+	cClientName := C.CString(clientName)
+	defer C.free(unsafe.Pointer(cClientName))
 	x.Connection = C.xmmsc_init(cClientName)
 	if x.Connection == nil {
 		return nil, errors.New("Client init failed")
@@ -42,15 +42,15 @@ func NewXmms2Client(clientName string) (*Xmms2Client, error) {
 
 /*
 Connect to xmms server, both tcp or unix socket are works.
-    
+
     x = NewXmms2Client("test")
     x.Connect("unix://somewhere")
     x.Connect("tcp://somewhere")
 
 */
 func (x *Xmms2Client) Connect(url string) error {
-    cUrl := C.CString(url)
-    defer C.free(unsafe.Pointer(cUrl))
+	cUrl := C.CString(url)
+	defer C.free(unsafe.Pointer(cUrl))
 	r := C.xmmsc_connect(x.Connection, cUrl)
 	if r == 0 {
 		errInfo := C.GoString(C.xmmsc_get_last_error(x.Connection))
@@ -63,7 +63,7 @@ func (x *Xmms2Client) Connect(url string) error {
 
 // Start playback.
 func (x *Xmms2Client) Play() error {
-    defer x.ResultUnref()
+	defer x.ResultUnref()
 	x.result = C.xmmsc_playback_start(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -72,7 +72,7 @@ func (x *Xmms2Client) Play() error {
 
 // Pause playback.
 func (x *Xmms2Client) Pause() error {
-    defer x.ResultUnref()
+	defer x.ResultUnref()
 	x.result = C.xmmsc_playback_pause(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -81,7 +81,7 @@ func (x *Xmms2Client) Pause() error {
 
 // Stop playback.
 func (x *Xmms2Client) Stop() error {
-    defer x.ResultUnref()
+	defer x.ResultUnref()
 	x.result = C.xmmsc_playback_stop(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -90,7 +90,7 @@ func (x *Xmms2Client) Stop() error {
 
 // Stop decoding of current song.
 func (x *Xmms2Client) Tickle() error {
-    defer x.ResultUnref()
+	defer x.ResultUnref()
 	x.result = C.xmmsc_playback_tickle(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -100,7 +100,7 @@ func (x *Xmms2Client) Tickle() error {
 
 // Get Current ID. If failed, return -1 and error info
 func (x *Xmms2Client) CurrentID() (int, error) {
-    defer x.ResultUnref()
+	defer x.ResultUnref()
 	x.result = C.xmmsc_playback_current_id(x.Connection)
 	C.xmmsc_result_wait(x.result)
 	x.returnValue = C.xmmsc_result_get_value(x.result)
@@ -115,17 +115,17 @@ func (x *Xmms2Client) CurrentID() (int, error) {
 
 // Get medialib info
 func (x *Xmms2Client) MediaLibInfo(id int) (map[string]interface{}, error) {
-    defer x.ResultUnref()
-    m := make(map[string]interface{})
-    x.result = C.xmmsc_medialib_get_info(x.Connection, C.int(id))
-    C.xmmsc_result_wait(x.result)
-    x.returnValue = C.xmmsc_result_get_value(x.result)
-    err := x.checkError("Get medialib info failed: %s")
-    if err != nil {
-        return nil, err
-    }
-    // TODO: new dict func
-    return m, nil
+	defer x.ResultUnref()
+	m := make(map[string]interface{})
+	x.result = C.xmmsc_medialib_get_info(x.Connection, C.int(id))
+	C.xmmsc_result_wait(x.result)
+	x.returnValue = C.xmmsc_result_get_value(x.result)
+	err := x.checkError("Get medialib info failed: %s")
+	if err != nil {
+		return nil, err
+	}
+	// TODO: new dict func
+	return m, nil
 }
 
 // --- Clean operations ---
@@ -153,7 +153,7 @@ func (x *Xmms2Client) Unref() {
 
 func (x *Xmms2Client) checkError(hintString string) error {
 	if int(C.macro_xmmsc_result_iserror(x.result)) != 0 {
-        x.errorBuff = C.xmmsc_get_last_error(x.Connection)
+		x.errorBuff = C.xmmsc_get_last_error(x.Connection)
 		return errors.New(fmt.Sprintf(
 			hintString, C.GoString(x.errorBuff),
 		))
@@ -173,12 +173,10 @@ func GetInt(x *C.xmmsv_t) (int, error) {
 }
 
 // Get string from xmmsv_t
-func GetString(x *C.xmmsv_t) (string, error){
-    var s *C.char
-    if int(C.xmmsv_get_string(x, &s)) == 0 {
-        return "", errors.New("Parse string failed")
-    }
-    return C.GoString(s), nil
+func GetString(x *C.xmmsv_t) (string, error) {
+	var s *C.char
+	if int(C.xmmsv_get_string(x, &s)) == 0 {
+		return "", errors.New("Parse string failed")
+	}
+	return C.GoString(s), nil
 }
-
-
