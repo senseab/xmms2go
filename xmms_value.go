@@ -16,6 +16,22 @@ import (
 	"unsafe"
 )
 
+const (
+	XMMSV_TYPE_NONE = iota
+	XMMSV_TYPE_ERROR
+	XMMSV_TYPE_INT64
+	XMMSV_TYPE_STRING
+	XMMSV_TYPE_COLL
+	XMMSV_TYPE_BIN
+	XMMSV_TYPE_LIST
+	XMMSV_TYPE_DICT
+	XMMSV_TYPE_BITBUFFER
+	XMMSV_TYPE_FLOAT
+	XMMSV_TYPE_END
+)
+
+const XMMSV_TYPE_INT32 = XMMSV_TYPE_INT64
+
 // *C.xmmsv_t
 type Value struct {
 	data *C.xmmsv_t
@@ -112,6 +128,17 @@ func (x *Value) export() *C.xmmsv_t {
 
 func (x *Value) Unref() {
 	C.xmmsv_unref(x.data)
+}
+
+func (x *Value) GetType() int {
+	return int(C.xmmsv_get_type(x.data))
+}
+
+func (x *Value) IsType(t int) bool {
+	if int(C.xmmsv_is_type(x.data, C.xmmsv_type_t(t))) == 1 {
+		return true
+	}
+	return false
 }
 
 func (x *Value) GetError() (error, error) {
