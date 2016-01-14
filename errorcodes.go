@@ -1,6 +1,6 @@
 package xmms2go
 
-const(
+const (
 	XMMS_ERROR_NONE = iota
 	XMMS_ERROR_GENERIC
 	XMMS_ERROR_OOM
@@ -10,4 +10,3 @@ const(
 	XMMS_ERROR_NO_SAUSAGE
 	XMMS_ERROR_COUNT /* must be last */
 )
-

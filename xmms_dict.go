@@ -22,4 +22,3 @@ func NewDict() *Dict {
 	d.data = C.xmmsv_new_dict()
 	return d
 }
-
