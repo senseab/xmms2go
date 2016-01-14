@@ -107,7 +107,7 @@ func NewValueFromBytes(b []byte) ValueBytes {
 func NewValueFromCopyValue(v *Value) *Value {
 	x := new(Value)
 	xmmsvT := v.export()
-	defer C.free(unsafe.Pointer(xmmsvT))
+	//defer C.free(unsafe.Pointer(xmmsvT))
 
 	x.data = C.xmmsv_copy(xmmsvT)
 	return x
@@ -116,7 +116,7 @@ func NewValueFromCopyValue(v *Value) *Value {
 func NewValueFromRef(v *Value) *Value {
 	x := new(Value)
 	xmmsvT := v.export()
-	defer C.free(unsafe.Pointer(xmmsvT))
+	//defer C.free(unsafe.Pointer(xmmsvT))
 
 	x.data = C.xmmsv_ref(xmmsvT)
 	return x
@@ -225,9 +225,16 @@ func (x *Value) IsError() bool {
 	return false
 }
 
+func (x *Value) ToValue() *Value {
+	v := new(Value)
+	v.data = C.xmmsv_ref(x.export())
+	return v
+}
+
 type ValueNone interface {
 	export() *C.xmmsv_t
 	Unref()
+	ToValue() *Value
 }
 
 type ValueError interface {
@@ -235,40 +242,47 @@ type ValueError interface {
 	Unref()
 	IsError() bool
 	GetError() (error, error)
+	ToValue() *Value
 }
 
 type ValueInt64 interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetInt64() (int64, error)
+	ToValue() *Value
 }
 
 type ValueInt32 interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetInt32() (int32, error)
+	ToValue() *Value
 }
 
 type ValueFloat64 interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetFloat64() (float64, error)
+	ToValue() *Value
 }
 
 type ValueFloat32 interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetFloat32() (float32, error)
+	ToValue() *Value
 }
 
 type ValueString interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetString() (string, error)
+	ToValue() *Value
 }
 
 type ValueBytes interface {
 	export() *C.xmmsv_t
 	Unref()
 	GetBytes() ([]byte, error)
+	ToValue() *Value
 }
