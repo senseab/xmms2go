@@ -16,6 +16,7 @@ import (
 	"unsafe"
 )
 
+// Value type, INT32 is same to INT64
 const (
 	XMMSV_TYPE_NONE = iota
 	XMMSV_TYPE_ERROR

@@ -218,6 +218,7 @@ const (
 	XMMS_PLUGIN_TYPE_XFORM
 )
 
+/* Collection type */
 const (
 	XMMS_COLLECTION_TYPE_REFERENCE = iota
 	XMMS_COLLECTION_TYPE_UNIVERSE
