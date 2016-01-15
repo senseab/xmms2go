@@ -315,3 +315,6 @@ func (l *List) Flatten(dep int) *List {
 }
 
 // TODO: Foreach and Iter
+
+// func FromSlice(s []interface{}) {
+// }

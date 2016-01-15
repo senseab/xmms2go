@@ -215,6 +215,15 @@ func (x *Value) GetString() (string, error) {
 	return C.GoString(s), nil
 }
 
+func (x *Value) GetList() (*List, error) {
+	if !x.IsType(XMMSV_TYPE_LIST) {
+		return nil, errors.New("Parse type list failed")
+	}
+	l := NewList()
+	l.data = x.export()
+	return l, nil
+}
+
 // Okay, we need to implement the collection type.
 
 func (x *Value) IsError() bool {
