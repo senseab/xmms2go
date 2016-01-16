@@ -74,6 +74,7 @@ func TestValue(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+    // Holy! Go type interface{} is Okay!
 	t.Log("Got test anytype value: func() -> ", vao.(func() string)())
 
 }
