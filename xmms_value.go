@@ -380,9 +380,14 @@ func (x *Value) GetAny() (interface{}, error) {
 	case XMMSV_TYPE_BIN:
 		return x.GetBytes()
 	case XMMSV_TYPE_LIST:
-		return x.GetList()
+		l, err := x.GetList()
+		if err != nil {
+			return nil, err
+		}
+		return l.ToSlice()
 	case XMMSV_TYPE_DICT:
 		return x.GetDict()
+		//return x.GetDict().ToMap()
 	case XMMSV_TYPE_COLL:
 		return x.GetCollection()
 	case XMMSV_TYPE_NONE:
