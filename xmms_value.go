@@ -45,6 +45,14 @@ func NewValueFromNone() ValueNone {
 	return vn
 }
 
+func NewValueFromAny(any interface{}) ValueAny {
+	x := new(Value)
+	x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+
+	var va ValueAny = x
+	return va
+}
+
 func NewValueFromError(e error) ValueError {
 	x := new(Value)
 	cErrInfo := C.CString(e.Error())
@@ -133,6 +141,12 @@ func (x *Value) IsType(t int) bool {
 		return true
 	}
 	return false
+}
+
+func (x *Value) GetAny() (interface{}, error) {
+	v := new(interface{})
+	v = (*interface{})(unsafe.Pointer(x.data))
+	return *v, nil
 }
 
 func (x *Value) GetError() (error, error) {
@@ -239,52 +253,43 @@ type ValueNone interface {
 	ToValue() *Value
 }
 
+type ValueAny interface {
+	ValueNone
+	GetAny() (interface{}, error)
+}
+
 type ValueError interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	IsError() bool
 	GetError() (error, error)
-	ToValue() *Value
 }
 
 type ValueInt64 interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetInt64() (int64, error)
-	ToValue() *Value
 }
 
 type ValueInt32 interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetInt32() (int32, error)
-	ToValue() *Value
 }
 
 type ValueFloat64 interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetFloat64() (float64, error)
-	ToValue() *Value
 }
 
 type ValueFloat32 interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetFloat32() (float32, error)
-	ToValue() *Value
 }
 
 type ValueString interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetString() (string, error)
-	ToValue() *Value
 }
 
 type ValueBytes interface {
-	export() *C.xmmsv_t
-	Unref()
+	ValueNone
 	GetBytes() ([]byte, error)
-	ToValue() *Value
 }

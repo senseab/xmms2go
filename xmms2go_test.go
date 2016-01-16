@@ -68,6 +68,14 @@ func TestValue(t *testing.T) {
 	}
 	t.Log("Got test bytes value:", vbo, string(vbo))
 
+	va := NewValueFromAny(func() string { return "Okay" })
+	defer va.Unref()
+	vao, err := va.GetAny()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Got test anytype value: func() -> ", vao.(func() string)())
+
 }
 
 func TestClient(t *testing.T) {

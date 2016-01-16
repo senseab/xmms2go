@@ -314,14 +314,37 @@ func (l *List) Flatten(dep int) *List {
 	return v
 }
 
-// TODO: Foreach and Iter
+func (l *List) FromSlice(s []interface{}) error {
+	for _, v := range s {
+		val := NewValueFromAny(v)
+		err := l.Append(val.ToValue())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-/*
-func (l *List)FromSlice(s []interface{}) error {
+func (l *List) ToSlice() ([]*Value, error) {
+	v := make([]*Value, 0)
+
+	i, err := NewListIter(l)
+	defer i.Destroy()
+	if err != nil {
+		return nil, err
+	}
+
+	for a := 0; a < l.GetSize(); a++ {
+		val, err := i.Entry()
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, val)
+        i.Next()
+	}
+
+	return v, nil
 }
-func (l *List)ToSlice() ([]interface{}, error){
-}
-*/
 
 // ListIter is cursor to List
 type ListIter struct {
