@@ -13,12 +13,18 @@ package xmms2go
 import "C"
 
 // XmmsDict
-type Dict struct {
+type dict struct {
 	Value
 }
 
-func NewDict() *Dict {
-	d := new(Dict)
+func NewDict() Dict {
+	d := new(dict)
 	d.data = C.xmmsv_new_dict()
-	return d
+
+	var D Dict = d
+	return D
+}
+
+type Dict interface {
+	ValueNone
 }

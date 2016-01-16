@@ -47,7 +47,26 @@ func NewValueFromNone() ValueNone {
 
 func NewValueFromAny(any interface{}) ValueAny {
 	x := new(Value)
-	x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+	switch any.(type) {
+	case int:
+		x = NewValueFromInt32(any.(int32)).ToValue()
+	case int32:
+		x = NewValueFromInt32(any.(int32)).ToValue()
+	case int64:
+		x = NewValueFromInt64(any.(int64)).ToValue()
+	case float32:
+		x = NewValueFromFloat32(any.(float32)).ToValue()
+	case float64:
+		x = NewValueFromFloat64(any.(float64)).ToValue()
+	case string:
+		x = NewValueFromString(any.(string)).ToValue()
+	case []byte:
+		x = NewValueFromBytes(any.([]byte)).ToValue()
+	case error:
+		x = NewValueFromError(any.(error)).ToValue()
+	default: // Pointer?
+		x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+	}
 
 	var va ValueAny = x
 	return va
@@ -222,13 +241,57 @@ func (x *Value) GetString() (string, error) {
 	return C.GoString(s), nil
 }
 
-func (x *Value) GetList() (*List, error) {
+func (x *Value) GetList() (List, error) {
 	if !x.IsType(XMMSV_TYPE_LIST) {
 		return nil, errors.New("Parse type list failed")
 	}
-	l := NewList()
+	l := new(list)
 	l.data = x.export()
-	return l, nil
+	var L List = l
+	return L, nil
+}
+
+// Dummy
+func (x *Value) GetDict() (Dict, error) {
+	return nil, nil
+}
+
+// Dummy
+func (x *Value) GetCollection() (Collection, error) {
+	return nil, nil
+}
+
+// Dummy
+func (x *Value) GetBitBuffer() (BitBuffer, error) {
+	return nil, nil
+}
+
+func (x *Value) ToAny() (interface{}, error) {
+	switch x.GetType() {
+	case XMMSV_TYPE_INT64:
+		return x.GetInt64()
+	case XMMSV_TYPE_FLOAT:
+		return x.GetFloat64()
+	case XMMSV_TYPE_STRING:
+		return x.GetString()
+	case XMMSV_TYPE_ERROR:
+		return x.GetError()
+	case XMMSV_TYPE_BIN:
+		return x.GetBytes()
+	case XMMSV_TYPE_LIST:
+		return x.GetList()
+	case XMMSV_TYPE_DICT:
+		return x.GetDict()
+	case XMMSV_TYPE_COLL:
+		return x.GetCollection()
+	case XMMSV_TYPE_NONE:
+		return nil, nil
+	case XMMSV_TYPE_BITBUFFER:
+		return x.GetBitBuffer()
+	default:
+		return x.GetAny()
+	}
+	return nil, errors.New("What?")
 }
 
 // Okay, we need to implement the collection type.
@@ -251,6 +314,7 @@ type ValueNone interface {
 	export() *C.xmmsv_t
 	Unref()
 	ToValue() *Value
+	ToAny() (interface{}, error)
 }
 
 type ValueAny interface {

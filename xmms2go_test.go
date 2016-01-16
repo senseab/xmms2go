@@ -74,9 +74,31 @@ func TestValue(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-    // Holy! Go type interface{} is Okay!
-	t.Log("Got test anytype value: func() -> ", vao.(func() string)())
+	// Holy! Go type interface{} is Okay!
+	t.Log("Got test anytype value: func() ->", vao.(func() string)())
 
+}
+
+func TestList(t *testing.T) {
+	slice := make([]interface{}, 0)
+	for i := 0; i < 10; i++ {
+		slice = append(slice, int64(i))
+	}
+	t.Log("Slice =", slice)
+
+	li64 := NewList()
+	defer li64.Unref()
+	err := li64.FromSlice(slice)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", li64.GetSize())
+
+	slice2, err := li64.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice2 =", slice2)
 }
 
 func TestClient(t *testing.T) {
