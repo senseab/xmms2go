@@ -316,5 +316,199 @@ func (l *List) Flatten(dep int) *List {
 
 // TODO: Foreach and Iter
 
-// func FromSlice(s []interface{}) {
-// }
+/*
+func (l *List)FromSlice(s []interface{}) error {
+}
+func (l *List)ToSlice() ([]interface{}, error){
+}
+*/
+
+// ListIter is cursor to List
+type ListIter struct {
+	data *C.xmmsv_list_iter_t
+}
+
+// Get a new list iter
+func NewListIter(val *List) (*ListIter, error) {
+	l := new(ListIter)
+	r := C.xmmsv_get_list_iter(val.export(), &l.data)
+	if int(r) == 0 {
+		return nil, errors.New("Get list iter failed")
+	}
+	return l, nil
+}
+
+func (l *ListIter) Destroy() {
+	C.xmmsv_list_iter_explicit_destroy(l.data)
+}
+
+func (l *ListIter) Entry() (*Value, error) {
+	e := new(Value)
+	r := C.xmmsv_list_iter_entry(l.data, &e.data)
+	if int(r) == 0 {
+		return nil, errors.New("Get entry failed")
+	}
+	return e, nil
+}
+
+func (l *ListIter) Valid() bool {
+	r := C.xmmsv_list_iter_valid(l.data)
+	if int(r) == 0 {
+		return false
+	}
+	return true
+}
+
+// Point to the first element
+func (l *ListIter) First() {
+	C.xmmsv_list_iter_first(l.data)
+}
+
+// Point to the last element
+func (l *ListIter) Last() {
+	C.xmmsv_list_iter_last(l.data)
+}
+
+// Point to the next element
+func (l *ListIter) Next() {
+	C.xmmsv_list_iter_next(l.data)
+}
+
+// Point to the previous element
+func (l *ListIter) Prev() {
+	C.xmmsv_list_iter_prev(l.data)
+}
+
+// Goto positon.
+func (l *ListIter) Seek(pos int) error {
+	r := C.xmmsv_list_iter_seek(l.data, C.int(pos))
+	if int(r) == 0 {
+		return errors.New("Seek failed")
+	}
+	return nil
+}
+
+// Tell the position of the ListIter
+func (l *ListIter) Tell() int {
+	r := C.xmmsv_list_iter_tell(l.data)
+	return int(r)
+}
+
+func (l *ListIter) GetParent() *Value {
+	v := new(Value)
+	v.data = C.xmmsv_list_iter_get_parent(l.data)
+	return v
+}
+
+func (l *ListIter) Set(val *Value) error {
+	r := C.xmmsv_list_iter_set(l.data, val.export())
+	if int(r) == 0 {
+		return errors.New("Set value failed")
+	}
+	return nil
+}
+
+func (l *ListIter) Insert(val *Value) error {
+	r := C.xmmsv_list_iter_insert(l.data, val.export())
+	if int(r) == 0 {
+		return errors.New("Set value failed")
+	}
+	return nil
+}
+
+func (l *ListIter) Remove() error {
+	r := C.xmmsv_list_iter_remove(l.data)
+	if int(r) == 0 {
+		return errors.New("Remove value failed")
+	}
+	return nil
+}
+
+func (l *ListIter) EntryString() (string, error) {
+	var s *C.char
+	defer C.free(unsafe.Pointer(s))
+	r := C.xmmsv_list_iter_entry_string(l.data, &s)
+	if int(r) == 0 {
+		return "", errors.New("Get string failed")
+	}
+	return C.GoString(s), nil
+}
+
+func (l *ListIter) EntryInt32() (int32, error) {
+	var i C.int32_t
+	r := C.xmmsv_list_iter_entry_int32(l.data, &i)
+	if int(r) == 0 {
+		return 0, errors.New("Get int32 failed")
+	}
+	return int32(i), nil
+}
+
+func (l *ListIter) EntryInt64() (int64, error) {
+	var i C.int64_t
+	r := C.xmmsv_list_iter_entry_int64(l.data, &i)
+	if int(r) == 0 {
+		return 0, errors.New("Get int64 failed")
+	}
+	return int64(i), nil
+}
+
+func (l *ListIter) entryFloat() (C.float, error) {
+	var f C.float
+	r := C.xmmsv_list_iter_entry_float(l.data, &f)
+	if int(r) == 0 {
+		return 0, errors.New("Get float failed")
+	}
+	return f, nil
+}
+
+func (l *ListIter) EntryFloat32() (float32, error) {
+	f, err := l.entryFloat()
+	return float32(f), err
+}
+
+func (l *ListIter) EntryFloat64() (float64, error) {
+	f, err := l.entryFloat()
+	return float64(f), err
+}
+
+func (l *ListIter) InsertString(s string) error {
+	cS := C.CString(s)
+	defer C.free(unsafe.Pointer(cS))
+	r := C.xmmsv_list_iter_insert_string(l.data, cS)
+	if int(r) == 0 {
+		return errors.New("Insert String failed")
+	}
+	return nil
+}
+
+func (l *ListIter) insertInt(i C.int64_t) error {
+	r := C.xmmsv_list_iter_insert_int(l.data, i)
+	if int(r) == 0 {
+		return errors.New("Insert int failed")
+	}
+	return nil
+}
+
+func (l *ListIter) InsertInt32(i int32) error {
+	return l.insertInt(C.int64_t(i))
+}
+
+func (l *ListIter) InsertInt64(i int64) error {
+	return l.insertInt(C.int64_t(i))
+}
+
+func (l *ListIter) insertFloat(f C.float) error {
+	r := C.xmmsv_list_iter_insert_float(l.data, f)
+	if int(r) == 0 {
+		return errors.New("Insert float failed")
+	}
+	return nil
+}
+
+func (l *ListIter) InsertFloat32(f float32) error {
+	return l.insertFloat(C.float(f))
+}
+
+func (l *ListIter) InsertFloat64(f float64) error {
+	return l.insertFloat(C.float(f))
+}

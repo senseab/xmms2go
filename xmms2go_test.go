@@ -53,7 +53,7 @@ func TestValue(t *testing.T) {
 	t.Log("Got test float32 value:", vf32o)
 
 	vs := NewValueFromString("Test string")
-	defer vf32.Unref()
+	defer vs.Unref()
 	vso, err := vs.GetString()
 	if err != nil {
 		t.Error(err)

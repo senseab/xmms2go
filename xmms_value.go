@@ -97,7 +97,6 @@ func NewValueFromBytes(b []byte) ValueBytes {
 	length := len(b)
 	x := new(Value)
 	d := (*C.uchar)(unsafe.Pointer(&b[0]))
-	//defer C.free(unsafe.Pointer(d)) // convert from Go, free memory necessary?
 
 	x.data = C.xmmsv_new_bin(d, C.uint(length))
 	var vb ValueBytes = x
@@ -106,19 +105,13 @@ func NewValueFromBytes(b []byte) ValueBytes {
 
 func NewValueFromCopyValue(v *Value) *Value {
 	x := new(Value)
-	xmmsvT := v.export()
-	//defer C.free(unsafe.Pointer(xmmsvT))
-
-	x.data = C.xmmsv_copy(xmmsvT)
+	x.data = C.xmmsv_copy(v.export())
 	return x
 }
 
 func NewValueFromRef(v *Value) *Value {
 	x := new(Value)
-	xmmsvT := v.export()
-	//defer C.free(unsafe.Pointer(xmmsvT))
-
-	x.data = C.xmmsv_ref(xmmsvT)
+	x.data = C.xmmsv_ref(v.export())
 	return x
 }
 
