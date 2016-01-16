@@ -80,15 +80,15 @@ func TestValue(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	slice := make([]interface{}, 0)
+	slice1 := make([]interface{}, 0)
 	for i := 0; i < 10; i++ {
-		slice = append(slice, int64(i))
+		slice1 = append(slice1, int64(i))
 	}
-	t.Log("Slice =", slice)
+	t.Log("Slice1=", slice1)
 
 	li64 := NewList()
 	defer li64.Unref()
-	err := li64.FromSlice(slice)
+	err := li64.FromSlice(slice1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -98,7 +98,28 @@ func TestList(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log("Slice2 =", slice2)
+	t.Log("Slice2=", slice2)
+
+	slice3 := make([]interface{}, 0)
+	var empty interface{}
+	t.Log("empty=", empty)
+	for i := 0; i < 10; i++ {
+		slice3 = append(slice3, empty)
+	}
+	t.Log("Slice3=", slice3)
+	lempty := NewList()
+	defer lempty.Unref()
+	err = lempty.FromSlice(slice3)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", lempty.GetSize())
+
+	slice4, err := lempty.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice4=", slice4)
 }
 
 func TestClient(t *testing.T) {

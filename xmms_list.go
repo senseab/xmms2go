@@ -341,7 +341,7 @@ func (l *list) ToSlice() ([]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		intf, err := val.ToAny()
+		intf, err := val.GetAny()
 		if err != nil {
 			return nil, err
 		}

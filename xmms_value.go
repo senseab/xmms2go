@@ -71,7 +71,12 @@ func NewValueFromAny(any interface{}) ValueAny {
 			x = NewValueFromInt32(0).ToValue()
 		}
 	default: // Pointer?
-		x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+		println("> any=", any, "&any=", &any)
+		if any == nil {
+			x = NewValueFromNone().ToValue()
+		} else {
+			x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+		}
 	}
 
 	var va ValueAny = x
@@ -168,7 +173,7 @@ func (x *Value) IsType(t int) bool {
 	return false
 }
 
-func (x *Value) GetAny() (interface{}, error) {
+func (x *Value) getAny() (interface{}, error) {
 	v := new(interface{})
 	v = (*interface{})(unsafe.Pointer(x.data))
 	return *v, nil
@@ -272,7 +277,7 @@ func (x *Value) GetBitBuffer() (BitBuffer, error) {
 	return nil, nil
 }
 
-func (x *Value) ToAny() (interface{}, error) {
+func (x *Value) GetAny() (interface{}, error) {
 	switch x.GetType() {
 	case XMMSV_TYPE_INT64:
 		return x.GetInt64()
@@ -295,7 +300,7 @@ func (x *Value) ToAny() (interface{}, error) {
 	case XMMSV_TYPE_BITBUFFER:
 		return x.GetBitBuffer()
 	default:
-		return x.GetAny()
+		return x.getAny()
 	}
 	return nil, errors.New("What?")
 }
@@ -320,7 +325,6 @@ type ValueNone interface {
 	export() *C.xmmsv_t
 	Unref()
 	ToValue() *Value
-	ToAny() (interface{}, error)
 }
 
 type ValueAny interface {
