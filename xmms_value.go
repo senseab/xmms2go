@@ -13,6 +13,8 @@ package xmms2go
 import "C"
 import (
 	"errors"
+	"reflect"
+	"regexp"
 	"unsafe"
 )
 
@@ -47,35 +49,123 @@ func NewValueFromNone() ValueNone {
 
 func NewValueFromAny(any interface{}) ValueAny {
 	x := new(Value)
-	switch any.(type) {
-	case int:
-		x = NewValueFromInt32(any.(int32)).ToValue()
-	case int32:
-		x = NewValueFromInt32(any.(int32)).ToValue()
-	case int64:
-		x = NewValueFromInt64(any.(int64)).ToValue()
-	case float32:
-		x = NewValueFromFloat32(any.(float32)).ToValue()
-	case float64:
-		x = NewValueFromFloat64(any.(float64)).ToValue()
-	case string:
-		x = NewValueFromString(any.(string)).ToValue()
-	case []byte:
-		x = NewValueFromBytes(any.([]byte)).ToValue()
-	case error:
-		x = NewValueFromError(any.(error)).ToValue()
-	case bool:
-		if any.(bool) {
-			x = NewValueFromInt32(1).ToValue()
-		} else {
-			x = NewValueFromInt32(0).ToValue()
-		}
-	default: // Pointer?
-		// OK, <nil> may cause panic, so we need to make a none value.
-		if any == nil {
-			x = NewValueFromNone().ToValue()
-		} else {
-			x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+	// OK, <nil> may cause panic, so we need to make a none value.
+	if any == nil {
+		x = NewValueFromNone().ToValue()
+	} else {
+		_value := reflect.ValueOf(any)
+		switch _value.Type().String() {
+		case "int", "int8", "int16", "int32":
+			x = NewValueFromInt32(int32(_value.Int())).ToValue()
+		case "int64":
+			x = NewValueFromInt64(_value.Int()).ToValue()
+		case "float32":
+			x = NewValueFromFloat32(float32(_value.Float())).ToValue()
+		case "float64":
+			x = NewValueFromFloat64(_value.Float()).ToValue()
+		case "string":
+			x = NewValueFromString(_value.String()).ToValue()
+		case "[]byte", "[]uint8":
+			x = NewValueFromBytes(_value.Bytes()).ToValue()
+		case "error":
+			x = NewValueFromError(any.(error)).ToValue()
+		case "byte":
+			x = NewValueFromString(_value.String()).ToValue()
+		case "uint", "uint8", "uint16", "uint32":
+			x = NewValueFromInt32(int32(_value.Uint())).ToValue()
+		case "uint64":
+			x = NewValueFromInt64(int64(_value.Uint())).ToValue()
+		case "complex64", "complex128":
+			f := make([]interface{}, 2)
+			f[0] = real(_value.Complex())
+			f[1] = imag(_value.Complex())
+			l := NewList()
+			err := l.FromSlice(f)
+			if err != nil {
+				x = NewValueFromNone().ToValue()
+			} else {
+				x = l.ToValue()
+			}
+		case "uintptr":
+			if any.(uintptr) == 0 {
+				x = NewValueFromNone().ToValue()
+			} else {
+				x.data = (*C.xmmsv_t)(unsafe.Pointer(any.(uintptr)))
+			}
+		case "bool":
+			if _value.Bool() {
+				x = NewValueFromInt32(1).ToValue()
+			} else {
+				x = NewValueFromInt32(0).ToValue()
+			}
+		default:
+			// Pointer and Function
+			_type := _value.Type()
+			matched, err := regexp.MatchString("^\\*|^func", _type.String())
+			if err != nil {
+				x = NewValueFromNone().ToValue()
+			}
+			if matched {
+				x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+				break
+			}
+
+			// Slice
+			matched, err = regexp.MatchString("^\\[\\]", _type.String())
+			if err != nil {
+				x = NewValueFromNone().ToValue()
+				break
+			}
+			if matched {
+				s := make([]interface{}, 0)
+				for i := 0; i < _value.Len(); i++ {
+					s = append(s, _value.Index(i).Interface())
+				}
+
+				l := NewList()
+				err := l.FromSlice(s)
+				if err != nil {
+					x = NewValueFromNone().ToValue()
+					break
+				}
+				x = l.ToValue()
+				break
+			}
+
+			// Map[string]
+			matched, err = regexp.MatchString("^map\\[string\\]", _type.String())
+			if err != nil {
+				x = NewValueFromNone().ToValue()
+				break
+			}
+			if matched {
+				m := make(map[string]interface{})
+				for _, k := range _value.MapKeys() {
+					m[k.String()] = _value.MapIndex(k).Interface()
+				}
+
+				/*
+					d := NewDict()
+					                err := d.FromMap(m)
+					                if err != nil {
+									    x = NewValueFromNone().ToValue()
+									    break
+					                }
+					                x = d.ToValue()
+				*/
+				break
+			}
+
+			// Map[other]
+			matched, err = regexp.MatchString("^map\\[", _type.String())
+			if err != nil {
+				x = NewValueFromNone().ToValue()
+				break
+			}
+			if matched {
+				x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
+				break
+			}
 		}
 	}
 

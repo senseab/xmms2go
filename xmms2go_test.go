@@ -77,6 +77,16 @@ func TestValue(t *testing.T) {
 	// Holy! Go type interface{} is Okay!
 	t.Log("Got test anytype value: func() ->", vao.(func() string)())
 
+	tm := make(map[int]interface{})
+	tm[0] = "ABC"
+	vm := NewValueFromAny(tm)
+	defer vm.Unref()
+	vmo, err := vm.GetAny()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Got test map[int]:", vmo)
+
 }
 
 func TestList(t *testing.T) {
@@ -120,6 +130,68 @@ func TestList(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log("Slice4=", slice4)
+
+	slice5 := make([]interface{}, 0)
+	bytes := ([]byte)("Test")
+	for i := 0; i < 10; i++ {
+		slice5 = append(slice5, bytes)
+	}
+	t.Log("Slice5=", slice5)
+	lb := NewList()
+	defer lb.Unref()
+	err = lb.FromSlice(slice5)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", lb.GetSize())
+
+	slice6, err := lb.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice6=", slice6)
+
+	slice7 := make([]interface{}, 0)
+	b := byte('a')
+	for i := 0; i < 10; i++ {
+		slice7 = append(slice7, b)
+	}
+	t.Log("Slice7=", slice7)
+	lbb := NewList()
+	defer lbb.Unref()
+	err = lbb.FromSlice(slice7)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", lbb.GetSize())
+
+	slice8, err := lbb.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice8=", slice8)
+
+	slice9 := make([]interface{}, 0)
+	bi := make([]int, 2)
+	bi[0] = 1
+	bi[1] = 2
+	for i := 0; i < 10; i++ {
+		slice9 = append(slice9, bi)
+	}
+	t.Log("Slice9=", slice9)
+	lbbi := NewList()
+	defer lbbi.Unref()
+	err = lbbi.FromSlice(slice9)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", lbbi.GetSize())
+
+	slice10, err := lbbi.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice10=", slice10)
 }
 
 func TestClient(t *testing.T) {
