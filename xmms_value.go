@@ -71,7 +71,6 @@ func NewValueFromAny(any interface{}) ValueAny {
 			x = NewValueFromInt32(0).ToValue()
 		}
 	default: // Pointer?
-		println("> any=", any, "&any=", &any)
 		if any == nil {
 			x = NewValueFromNone().ToValue()
 		} else {
