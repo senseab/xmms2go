@@ -64,6 +64,12 @@ func NewValueFromAny(any interface{}) ValueAny {
 		x = NewValueFromBytes(any.([]byte)).ToValue()
 	case error:
 		x = NewValueFromError(any.(error)).ToValue()
+	case bool:
+		if any.(bool) {
+			x = NewValueFromInt32(1).ToValue()
+		} else {
+			x = NewValueFromInt32(0).ToValue()
+		}
 	default: // Pointer?
 		x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
 	}
