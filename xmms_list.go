@@ -7,6 +7,8 @@ package xmms2go
 #cgo LDFLAGS: -lxmmsclient
 #include <xmmsc/xmmsv.h>
 #include <malloc.h>
+#include <string.h>
+#include <stdio.h>
 
 static int
 list_compare_int (xmmsv_t **a, xmmsv_t **b)
@@ -35,6 +37,30 @@ list_compare_float (xmmsv_t **a, xmmsv_t **b){
     xmmsv_get_float (*a, &va);
     xmmsv_get_float (*b, &vb);
     return (int)(va - vb);
+}
+
+int do_list_sort(xmmsv_t *v){
+    xmmsv_type_t _type;
+    int r = xmmsv_list_get_type(v, &_type);
+    if (r == 0) {
+        return -1;
+    }
+
+    printf("> %d\n", _type);
+    switch(_type){
+    case XMMSV_TYPE_INT64:
+        return xmmsv_list_sort(v, list_compare_int);
+        break;
+    case XMMSV_TYPE_STRING:
+        return xmmsv_list_sort(v, list_compare_string);
+        break;
+    case XMMSV_TYPE_FLOAT:
+        return xmmsv_list_sort(v, list_compare_float);
+        break;
+    default:
+        return 0;
+    }
+    return 1;
 }
 #endif
 */
@@ -115,21 +141,13 @@ func (l *list) Clear() error {
 
 // Only int, string, float can be sorted.
 func (l *list) Sort() error {
-	_type, err := l.GetType()
-	if err != nil {
-		return err
-	}
-
-	switch _type {
-	case XMMSV_TYPE_INT64:
-		xmmsv_list_sort(l.data, C.list_compare_int)
-	case XMMSV_TYPE_STRING:
-		xmmsv_list_sort(l.data, C.list_compare_string)
-	case XMMSV_TYPE_FLOAT:
-		xmmsv_list_sort(l.data, C.list_compare_float)
-	default:
-		return errors.New("No sortable data found!")
-	}
+    r := C.do_list_sort(l.data)
+    switch int(r) {
+    case -1:
+        return errors.New("Get type failed.")
+    case 0:
+        return errors.New("No sortable data")
+    }
 	return nil
 }
 
@@ -432,6 +450,7 @@ type List interface {
 	SetInt32(pos int, val int32) error
 	SetInt64(pos int, val int64) error
 	SetString(pos int, val string) error
+    Sort() error
 	ToSlice() ([]interface{}, error)
 }
 
