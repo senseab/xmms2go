@@ -8,7 +8,6 @@ package xmms2go
 #include <xmmsc/xmmsv.h>
 #include <malloc.h>
 #include <string.h>
-#include <stdio.h>
 
 static int
 list_compare_int (xmmsv_t **a, xmmsv_t **b)
@@ -46,7 +45,6 @@ int do_list_sort(xmmsv_t *v){
         return -1;
     }
 
-    printf("> %d\n", _type);
     switch(_type){
     case XMMSV_TYPE_INT64:
         return xmmsv_list_sort(v, list_compare_int);
@@ -140,14 +138,15 @@ func (l *list) Clear() error {
 }
 
 // Only int, string, float can be sorted.
+// RestrictType() should be called first.
 func (l *list) Sort() error {
-    r := C.do_list_sort(l.data)
-    switch int(r) {
-    case -1:
-        return errors.New("Get type failed.")
-    case 0:
-        return errors.New("No sortable data")
-    }
+	r := C.do_list_sort(l.data)
+	switch int(r) {
+	case -1:
+		return errors.New("Get type failed.")
+	case 0:
+		return errors.New("No sortable data")
+	}
 	return nil
 }
 
@@ -174,7 +173,7 @@ func (l *list) HasType(_type int) bool {
 func (l *list) GetType() (int, error) {
 	var t C.xmmsv_type_t
 	r := C.xmmsv_list_get_type(l.data, &t)
-	if int(r) != 0 {
+	if int(r) == 0 {
 		return -1, errors.New("Get type failed")
 	}
 	return int(t), nil
@@ -450,7 +449,7 @@ type List interface {
 	SetInt32(pos int, val int32) error
 	SetInt64(pos int, val int64) error
 	SetString(pos int, val string) error
-    Sort() error
+	Sort() error
 	ToSlice() ([]interface{}, error)
 }
 

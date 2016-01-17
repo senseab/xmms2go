@@ -193,29 +193,30 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice10=", slice10)
 
-    slice11 := make([]interface{}, 0)
-    for i:= 10; i > 0; i-- {
-        slice11 = append(slice11, i)
-    }
-    t.Log("Slice11=", slice11)
-    ls := NewList()
-    defer ls.Unref()
-    err = ls.FromSlice(slice11)
-    if err != nil {
-        t.Error(err)
-    }
-    t.Log("Size=", ls.GetSize())
-    
-    // Do sort
-    err = ls.Sort()
-    if err != nil {
-        t.Error(err)
-    }
-    slice12, err := ls.ToSlice()
-    if err != nil {
-        t.Error(err)
-    }
-    t.Log("Slice12=", slice12)
+	slice11 := make([]interface{}, 0)
+	for i := 10; i > 0; i-- {
+		slice11 = append(slice11, float32(i)*3.14)
+	}
+	t.Log("Slice11=", slice11)
+	ls := NewList()
+	defer ls.Unref()
+	err = ls.FromSlice(slice11)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", ls.GetSize())
+
+	// Do sort
+    ls.RestrictType(XMMSV_TYPE_FLOAT)
+	err = ls.Sort()
+	if err != nil {
+		t.Error(err)
+	}
+	slice12, err := ls.ToSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Slice12=", slice12)
 }
 
 func TestClient(t *testing.T) {
