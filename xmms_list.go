@@ -8,6 +8,34 @@ package xmms2go
 #include <xmmsc/xmmsv.h>
 #include <malloc.h>
 
+static int
+list_compare_int (xmmsv_t **a, xmmsv_t **b)
+{
+	int va, vb;
+	va = vb = -1;
+	xmmsv_get_int (*a, &va);
+	xmmsv_get_int (*b, &vb);
+	return va - vb;
+}
+
+static int
+list_compare_string (xmmsv_t **a, xmmsv_t **b)
+{
+	const char *va, *vb;
+	va = vb = NULL;
+	xmmsv_get_string (*a, &va);
+	xmmsv_get_string (*b, &vb);
+	return strcmp (va, vb);
+}
+
+static int
+list_compare_float (xmmsv_t **a, xmmsv_t **b){
+    float va, vb;
+    va = vb = 0;
+    xmmsv_get_float (*a, &va);
+    xmmsv_get_float (*b, &vb);
+    return (int)(va - vb);
+}
 #endif
 */
 import "C"
@@ -85,10 +113,26 @@ func (l *list) Clear() error {
 	return nil
 }
 
-/*
-func (l *List) Sort(sortMethod func) error {
+
+func (l *list) Sort() error {
+    _type, err := l.GetType()
+    if err != nil {
+        return err
+    }
+
+    switch _type{
+    case XMMSV_TYPE_INT64:
+        xmmsv_list_sort(l.data, C.list_compare_int)
+    case XMMSV_TYPE_STRING:
+        xmmsv_list_sort(l.data, C.list_compare_string)
+    case XMMSV_TYPE_FLOAT:
+        xmmsv_list_sort(l.data, C.list_compare_float)
+    default:
+        return errors.New("No sortable data found!")
+    }
+    return nil
 }
-*/
+
 
 func (l *list) GetSize() int {
 	return int(C.xmmsv_list_get_size(l.data))
