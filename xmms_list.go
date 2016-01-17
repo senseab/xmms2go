@@ -113,26 +113,25 @@ func (l *list) Clear() error {
 	return nil
 }
 
-
+// Only int, string, float can be sorted.
 func (l *list) Sort() error {
-    _type, err := l.GetType()
-    if err != nil {
-        return err
-    }
+	_type, err := l.GetType()
+	if err != nil {
+		return err
+	}
 
-    switch _type{
-    case XMMSV_TYPE_INT64:
-        xmmsv_list_sort(l.data, C.list_compare_int)
-    case XMMSV_TYPE_STRING:
-        xmmsv_list_sort(l.data, C.list_compare_string)
-    case XMMSV_TYPE_FLOAT:
-        xmmsv_list_sort(l.data, C.list_compare_float)
-    default:
-        return errors.New("No sortable data found!")
-    }
-    return nil
+	switch _type {
+	case XMMSV_TYPE_INT64:
+		xmmsv_list_sort(l.data, C.list_compare_int)
+	case XMMSV_TYPE_STRING:
+		xmmsv_list_sort(l.data, C.list_compare_string)
+	case XMMSV_TYPE_FLOAT:
+		xmmsv_list_sort(l.data, C.list_compare_float)
+	default:
+		return errors.New("No sortable data found!")
+	}
+	return nil
 }
-
 
 func (l *list) GetSize() int {
 	return int(C.xmmsv_list_get_size(l.data))
