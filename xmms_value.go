@@ -246,7 +246,7 @@ func (x *Value) export() *C.xmmsv_t {
 	return x.data
 }
 
-func (x *Value) Unref() {
+func (x *Value) Unref()  {
 	C.xmmsv_unref(x.data)
 }
 

@@ -219,6 +219,27 @@ func TestList(t *testing.T) {
 	t.Log("Slice12=", slice12)
 }
 
+func TestDict(t *testing.T) {
+	map1 := make(map[string]interface{})
+	map1["A"] = 1
+	map1["B"] = 2
+	map1["C"] = 3
+    t.Log("map1=", map1)
+	di1 := NewDict()
+    defer di1.Unref()
+    err := di1.FromMap(map1)
+    if err != nil {
+        t.Error(err)
+    }
+    t.Log("Size=", di1.GetSize())
+
+    map2, err := di1.ToMap()
+    if err != nil {
+        t.Error(err)
+    }
+    t.Log("map2=", map2)
+}
+
 func TestClient(t *testing.T) {
 	X, err := NewXmms2Client("xmms2go-test")
 	defer X.Unref()

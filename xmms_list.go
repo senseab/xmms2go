@@ -391,9 +391,10 @@ func (l *list) ToSlice() ([]interface{}, error) {
 	v := make([]interface{}, 0)
 
 	i, err := NewListIter(l)
-	defer i.Destroy()
 	if err != nil {
 		return nil, err
+	} else {
+		defer i.Destroy()
 	}
 
 	i.First()

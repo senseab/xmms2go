@@ -205,10 +205,10 @@ func (d *dict) GetType(key string) int {
 
 func (d *dict) FromMap(val map[string]interface{}) error {
 	for k, v := range val {
-		val := NewValueFromAny(v)
-		r := d.Set(k, val)
-		if int(r) == 0 {
-			return fmt.Errorf("Convert from map[string]interface{} failed, key='%s' value=%v", k, v)
+		val := NewValueFromAny(v).ToValue()
+		err := d.Set(k, val)
+		if err != nil {
+            return fmt.Errorf("Convert from map[string]interface{} failed, key='%s' value=%v, err: %v", k, v, err)
 		}
 	}
 	return nil
@@ -217,9 +217,10 @@ func (d *dict) FromMap(val map[string]interface{}) error {
 func (d *dict) ToMap() (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	di, err := NewDictIter(d)
-	defer di.Destroy()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create dict iter")
+	} else {
+		defer di.Destroy()
 	}
 
 	di.First()
@@ -235,6 +236,7 @@ func (d *dict) ToMap() (map[string]interface{}, error) {
 			return nil, fmt.Errorf("Convert to map[string]interface{} failed, key='%s'", k)
 		}
 		r[k] = val
+		di.Next()
 	}
 	return r, nil
 }
@@ -266,7 +268,7 @@ type Dict interface {
 }
 
 type DictIter struct {
-	data *C.xmms_dict_iter_t
+	data *C.xmmsv_dict_iter_t
 }
 
 func NewDictIter(val Dict) (*DictIter, error) {
@@ -286,7 +288,7 @@ func (i *DictIter) Pair() (string, *Value, error) {
 	var key *C.char
 	defer C.free(unsafe.Pointer(key))
 	val := new(Value)
-	r := C.xmmsv_dict_iter(i.data, &key, &(val.data))
+	r := C.xmmsv_dict_iter_pair(i.data, &key, &(val.data))
 	if int(r) == 0 {
 		return "", nil, fmt.Errorf("Pair content failed")
 	}
@@ -321,7 +323,7 @@ func (i *DictIter) Find(key string) error {
 }
 
 func (i *DictIter) Set(val *Value) error {
-	r := C.xmmsv_dict_iter_find(i.data, val.export())
+	r := C.xmmsv_dict_iter_set(i.data, val.export())
 	if int(r) == 0 {
 		return fmt.Errorf("Set content failed")
 	}
@@ -367,7 +369,7 @@ func (i *DictIter) PairInt64() (string, int64, error) {
 
 	var val C.int64_t
 
-	r := C.xmmsv_dict_iter_pair_int32(i.data, &key, &val)
+	r := C.xmmsv_dict_iter_pair_int64(i.data, &key, &val)
 	if int(r) == 0 {
 		return "", 0, fmt.Errorf("Pair int64 content failed")
 	}
@@ -387,12 +389,12 @@ func (i *DictIter) pairFloat() (string, C.float, error) {
 	return C.GoString(key), val, nil
 }
 
-func (i *DictIter) GetFloat32(string, float32, error) {
+func (i *DictIter) GetFloat32()(string, float32, error) {
 	k, v, err := i.pairFloat()
 	return k, float32(v), err
 }
 
-func (i *DictIter) GetFloat64(string, float64, error) {
+func (i *DictIter) GetFloat64()(string, float64, error) {
 	k, v, err := i.pairFloat()
 	return k, float64(v), err
 }
