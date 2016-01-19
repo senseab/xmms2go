@@ -396,6 +396,8 @@ func (l *list) ToSlice() ([]interface{}, error) {
 		return nil, err
 	}
 
+	i.First()
+
 	for a := 0; a < l.GetSize(); a++ {
 		val, err := i.Entry()
 		if err != nil {

@@ -217,6 +217,7 @@ func (d *dict) FromMap(val map[string]interface{}) error {
 func (d *dict) ToMap() (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	di, err := NewDictIter(d)
+	defer di.Destroy()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create dict iter")
 	}
@@ -240,8 +241,28 @@ func (d *dict) ToMap() (map[string]interface{}, error) {
 
 type Dict interface {
 	ValueNone
-	Get() (Value, error)
+	Get(key string) (*Value, error)
+	Set(key string, val *Value) error
+	Remove(key string) error
+	Clear() error
 	GetSize() int
+	HasKey(key string) bool
+
+	GetString(key string) (string, error)
+	GetInt32(key string) (int32, error)
+	GetInt64(key string) (int64, error)
+	GetFloat32(key string) (float32, error)
+	GetFloat64(key string) (float64, error)
+
+	SetString(key string, val string) error
+	SetInt64(key string, val int64) error
+	SetInt32(key string, val int32) error
+	SetFloat64(key string, val float64) error
+	SetFloat32(key string, val float32) error
+
+	GetType(key string) int
+	FromMap(val map[string]interface{}) error
+	ToMap() (map[string]interface{}, error)
 }
 
 type DictIter struct {
