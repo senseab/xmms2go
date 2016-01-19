@@ -208,7 +208,7 @@ func (d *dict) FromMap(val map[string]interface{}) error {
 		val := NewValueFromAny(v).ToValue()
 		err := d.Set(k, val)
 		if err != nil {
-            return fmt.Errorf("Convert from map[string]interface{} failed, key='%s' value=%v, err: %v", k, v, err)
+			return fmt.Errorf("Convert from map[string]interface{} failed, key='%s' value=%v, err: %v", k, v, err)
 		}
 	}
 	return nil
@@ -389,12 +389,12 @@ func (i *DictIter) pairFloat() (string, C.float, error) {
 	return C.GoString(key), val, nil
 }
 
-func (i *DictIter) GetFloat32()(string, float32, error) {
+func (i *DictIter) GetFloat32() (string, float32, error) {
 	k, v, err := i.pairFloat()
 	return k, float32(v), err
 }
 
-func (i *DictIter) GetFloat64()(string, float64, error) {
+func (i *DictIter) GetFloat64() (string, float64, error) {
 	k, v, err := i.pairFloat()
 	return k, float64(v), err
 }

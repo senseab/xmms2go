@@ -224,20 +224,20 @@ func TestDict(t *testing.T) {
 	map1["A"] = 1
 	map1["B"] = 2
 	map1["C"] = 3
-    t.Log("map1=", map1)
+	t.Log("map1=", map1)
 	di1 := NewDict()
-    defer di1.Unref()
-    err := di1.FromMap(map1)
-    if err != nil {
-        t.Error(err)
-    }
-    t.Log("Size=", di1.GetSize())
+	defer di1.Unref()
+	err := di1.FromMap(map1)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Size=", di1.GetSize())
 
-    map2, err := di1.ToMap()
-    if err != nil {
-        t.Error(err)
-    }
-    t.Log("map2=", map2)
+	map2, err := di1.ToMap()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("map2=", map2)
 }
 
 func TestClient(t *testing.T) {
