@@ -207,7 +207,7 @@ func TestList(t *testing.T) {
 	t.Log("Size=", ls.GetSize())
 
 	// Do sort
-    ls.RestrictType(XMMSV_TYPE_FLOAT)
+	ls.RestrictType(XMMSV_TYPE_FLOAT)
 	err = ls.Sort()
 	if err != nil {
 		t.Error(err)

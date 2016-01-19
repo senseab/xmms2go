@@ -64,7 +64,7 @@ int do_list_sort(xmmsv_t *v){
 */
 import "C"
 import (
-	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -84,7 +84,7 @@ func (l *list) Get(pos int) (*Value, error) {
 	val := new(Value)
 	r := C.xmmsv_list_get(l.data, C.int(pos), &(val.data))
 	if int(r) == 0 {
-		return nil, errors.New("Get content failed")
+		return nil, fmt.Errorf("Get content failed, pos=%d", pos)
 	}
 	return val, nil
 }
@@ -92,7 +92,7 @@ func (l *list) Get(pos int) (*Value, error) {
 func (l *list) Set(pos int, val *Value) error {
 	r := C.xmmsv_list_set(l.data, C.int(pos), val.export())
 	if int(r) == 0 {
-		return errors.New("Set content failed")
+		return fmt.Errorf("Set content failed, pos=%d", pos)
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func (l *list) Set(pos int, val *Value) error {
 func (l *list) Append(val *Value) error {
 	r := C.xmmsv_list_append(l.data, val.export())
 	if int(r) == 0 {
-		return errors.New("Append content failed")
+		return fmt.Errorf("Append content failed")
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (l *list) Append(val *Value) error {
 func (l *list) Insert(pos int, val *Value) error {
 	r := C.xmmsv_list_insert(l.data, C.int(pos), val.export())
 	if int(r) == 0 {
-		return errors.New("Insert content failed")
+		return fmt.Errorf("Insert content failed, pos=%d", pos)
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func (l *list) Insert(pos int, val *Value) error {
 func (l *list) Remove(pos int) error {
 	r := C.xmmsv_list_remove(l.data, C.int(pos))
 	if int(r) == 0 {
-		return errors.New("Remove content failed")
+		return fmt.Errorf("Remove content failed, pos=%d", pos)
 	}
 	return nil
 }
@@ -124,7 +124,7 @@ func (l *list) Remove(pos int) error {
 func (l *list) Move(posOld int, posNew int) error {
 	r := C.xmmsv_list_move(l.data, C.int(posOld), C.int(posNew))
 	if int(r) == 0 {
-		return errors.New("Move content failed")
+		return fmt.Errorf("Move content failed, posOld=%d, posNew=%d", posOld, posNew)
 	}
 	return nil
 }
@@ -132,7 +132,7 @@ func (l *list) Move(posOld int, posNew int) error {
 func (l *list) Clear() error {
 	r := C.xmmsv_list_clear(l.data)
 	if int(r) == 0 {
-		return errors.New("Clear content failed")
+		return fmt.Errorf("Clear content failed")
 	}
 	return nil
 }
@@ -143,9 +143,9 @@ func (l *list) Sort() error {
 	r := C.do_list_sort(l.data)
 	switch int(r) {
 	case -1:
-		return errors.New("Get type failed.")
+		return fmt.Errorf("Get type failed.")
 	case 0:
-		return errors.New("No sortable data")
+		return fmt.Errorf("No sortable data")
 	}
 	return nil
 }
@@ -157,7 +157,7 @@ func (l *list) GetSize() int {
 func (l *list) RestrictType(_type int) error {
 	r := C.xmmsv_list_restrict_type(l.data, C.xmmsv_type_t(_type))
 	if int(r) == 0 {
-		return errors.New("Restrict type failed")
+		return fmt.Errorf("Restrict type failed")
 	}
 	return nil
 }
@@ -174,7 +174,7 @@ func (l *list) GetType() (int, error) {
 	var t C.xmmsv_type_t
 	r := C.xmmsv_list_get_type(l.data, &t)
 	if int(r) == 0 {
-		return -1, errors.New("Get type failed")
+		return -1, fmt.Errorf("Get type failed")
 	}
 	return int(t), nil
 }
@@ -189,7 +189,7 @@ func (l *list) GetString(pos int) (string, error) {
 	defer C.free(unsafe.Pointer(s))
 	r := C.xmmsv_list_get_string(l.data, C.int(pos), &s)
 	if int(r) == 0 {
-		return "", errors.New("Get string failed")
+		return "", fmt.Errorf("Get string failed, pos=%d", pos)
 	}
 	return C.GoString(s), nil
 }
@@ -198,7 +198,7 @@ func (l *list) GetInt32(pos int) (int32, error) {
 	var i C.int32_t
 	r := C.xmmsv_list_get_int32(l.data, C.int(pos), &i)
 	if int(r) == 0 {
-		return -1, errors.New("Get int32 failed")
+		return -1, fmt.Errorf("Get int32 failed, pos=%d", pos)
 	}
 	return int32(i), nil
 }
@@ -207,7 +207,7 @@ func (l *list) GetInt64(pos int) (int64, error) {
 	var i C.int64_t
 	r := C.xmmsv_list_get_int64(l.data, C.int(pos), &i)
 	if int(r) == 0 {
-		return -1, errors.New("Get int64 failed")
+		return -1, fmt.Errorf("Get int64 failed, pos=%d", pos)
 	}
 	return int64(i), nil
 }
@@ -216,7 +216,7 @@ func (l *list) getFloat(pos int) (C.float, error) {
 	var f C.float
 	r := C.xmmsv_list_get_float(l.data, C.int(pos), &f)
 	if int(r) == 0 {
-		return -1, errors.New("Get float failed")
+		return -1, fmt.Errorf("Get float failed, pos=%d", pos)
 	}
 	return f, nil
 }
@@ -236,7 +236,7 @@ func (l *list) SetString(pos int, val string) error {
 	defer C.free(unsafe.Pointer(s))
 	r := C.xmmsv_list_set_string(l.data, C.int(pos), s)
 	if int(r) == 0 {
-		return errors.New("Set string failed")
+		return fmt.Errorf("Set string '%s' failed, pos=%d", val, pos)
 	}
 	return nil
 }
@@ -244,7 +244,7 @@ func (l *list) SetString(pos int, val string) error {
 func (l *list) setInt(pos int, val C.int64_t) error {
 	r := C.xmmsv_list_set_int(l.data, C.int(pos), val)
 	if int(r) == 0 {
-		return errors.New("Set int failed")
+		return fmt.Errorf("Set int %d failed, pos=%d", int64(val), pos)
 	}
 	return nil
 }
@@ -262,7 +262,7 @@ func (l *list) SetInt64(pos int, val int64) error {
 func (l *list) setFloat(pos int, val C.float) error {
 	r := C.xmmsv_list_set_float(l.data, C.int(pos), val)
 	if int(r) == 0 {
-		return errors.New("Set float failed")
+		return fmt.Errorf("Set float %f failed, pos=%d", float32(val), pos)
 	}
 	return nil
 }
@@ -282,7 +282,7 @@ func (l *list) InsertString(pos int, val string) error {
 	defer C.free(unsafe.Pointer(s))
 	r := C.xmmsv_list_insert_string(l.data, C.int(pos), s)
 	if int(r) == 0 {
-		return errors.New("Insert string failed")
+		return fmt.Errorf("Insert string '%s' failed, pos=%d", val, pos)
 	}
 	return nil
 }
@@ -290,7 +290,7 @@ func (l *list) InsertString(pos int, val string) error {
 func (l *list) insertInt(pos int, val C.int64_t) error {
 	r := C.xmmsv_list_insert_int(l.data, C.int(pos), val)
 	if int(r) == 0 {
-		return errors.New("Insert int failed")
+		return fmt.Errorf("Insert int %d failed, pos=%d", int64(val), pos)
 	}
 	return nil
 }
@@ -308,7 +308,7 @@ func (l *list) InsertInt64(pos int, val int64) error {
 func (l *list) insertFloat(pos int, val C.float) error {
 	r := C.xmmsv_list_insert_float(l.data, C.int(pos), val)
 	if int(r) == 0 {
-		return errors.New("Insert float failed")
+		return fmt.Errorf("Insert float %f failed, pos=%d", float32(val), pos)
 	}
 	return nil
 }
@@ -328,7 +328,7 @@ func (l *list) AppendString(val string) error {
 	defer C.free(unsafe.Pointer(s))
 	r := C.xmmsv_list_append_string(l.data, s)
 	if int(r) == 0 {
-		return errors.New("Append string failed")
+		return fmt.Errorf("Append string '%s' failed", val)
 	}
 	return nil
 }
@@ -336,7 +336,7 @@ func (l *list) AppendString(val string) error {
 func (l *list) appendInt(val C.int64_t) error {
 	r := C.xmmsv_list_append_int(l.data, val)
 	if int(r) == 0 {
-		return errors.New("Append int failed")
+		return fmt.Errorf("Append int %d failed", float64(val))
 	}
 	return nil
 }
@@ -354,7 +354,7 @@ func (l *list) AppendInt64(val int64) error {
 func (l *list) appendFloat(val C.float) error {
 	r := C.xmmsv_list_append_float(l.data, val)
 	if int(r) == 0 {
-		return errors.New("Append float failed")
+		return fmt.Errorf("Append float %f failed", float32(val))
 	}
 	return nil
 }
@@ -463,7 +463,7 @@ func NewListIter(val List) (*ListIter, error) {
 	l := new(ListIter)
 	r := C.xmmsv_get_list_iter(val.export(), &l.data)
 	if int(r) == 0 {
-		return nil, errors.New("Get list iter failed")
+		return nil, fmt.Errorf("Get list iter failed")
 	}
 	return l, nil
 }
@@ -476,7 +476,7 @@ func (l *ListIter) Entry() (*Value, error) {
 	e := new(Value)
 	r := C.xmmsv_list_iter_entry(l.data, &e.data)
 	if int(r) == 0 {
-		return nil, errors.New("Get entry failed")
+		return nil, fmt.Errorf("Get entry failed")
 	}
 	return e, nil
 }
@@ -513,7 +513,7 @@ func (l *ListIter) Prev() {
 func (l *ListIter) Seek(pos int) error {
 	r := C.xmmsv_list_iter_seek(l.data, C.int(pos))
 	if int(r) == 0 {
-		return errors.New("Seek failed")
+		return fmt.Errorf("Seek failed, pos=%d", pos)
 	}
 	return nil
 }
@@ -533,7 +533,7 @@ func (l *ListIter) GetParent() *Value {
 func (l *ListIter) Set(val *Value) error {
 	r := C.xmmsv_list_iter_set(l.data, val.export())
 	if int(r) == 0 {
-		return errors.New("Set value failed")
+		return fmt.Errorf("Set value failed")
 	}
 	return nil
 }
@@ -541,7 +541,7 @@ func (l *ListIter) Set(val *Value) error {
 func (l *ListIter) Insert(val *Value) error {
 	r := C.xmmsv_list_iter_insert(l.data, val.export())
 	if int(r) == 0 {
-		return errors.New("Set value failed")
+		return fmt.Errorf("Set value failed")
 	}
 	return nil
 }
@@ -549,7 +549,7 @@ func (l *ListIter) Insert(val *Value) error {
 func (l *ListIter) Remove() error {
 	r := C.xmmsv_list_iter_remove(l.data)
 	if int(r) == 0 {
-		return errors.New("Remove value failed")
+		return fmt.Errorf("Remove value failed")
 	}
 	return nil
 }
@@ -559,7 +559,7 @@ func (l *ListIter) EntryString() (string, error) {
 	defer C.free(unsafe.Pointer(s))
 	r := C.xmmsv_list_iter_entry_string(l.data, &s)
 	if int(r) == 0 {
-		return "", errors.New("Get string failed")
+		return "", fmt.Errorf("Get string failed")
 	}
 	return C.GoString(s), nil
 }
@@ -568,7 +568,7 @@ func (l *ListIter) EntryInt32() (int32, error) {
 	var i C.int32_t
 	r := C.xmmsv_list_iter_entry_int32(l.data, &i)
 	if int(r) == 0 {
-		return 0, errors.New("Get int32 failed")
+		return 0, fmt.Errorf("Get int32 failed")
 	}
 	return int32(i), nil
 }
@@ -577,7 +577,7 @@ func (l *ListIter) EntryInt64() (int64, error) {
 	var i C.int64_t
 	r := C.xmmsv_list_iter_entry_int64(l.data, &i)
 	if int(r) == 0 {
-		return 0, errors.New("Get int64 failed")
+		return 0, fmt.Errorf("Get int64 failed")
 	}
 	return int64(i), nil
 }
@@ -586,7 +586,7 @@ func (l *ListIter) entryFloat() (C.float, error) {
 	var f C.float
 	r := C.xmmsv_list_iter_entry_float(l.data, &f)
 	if int(r) == 0 {
-		return 0, errors.New("Get float failed")
+		return 0, fmt.Errorf("Get float failed")
 	}
 	return f, nil
 }
@@ -606,7 +606,7 @@ func (l *ListIter) InsertString(s string) error {
 	defer C.free(unsafe.Pointer(cS))
 	r := C.xmmsv_list_iter_insert_string(l.data, cS)
 	if int(r) == 0 {
-		return errors.New("Insert String failed")
+		return fmt.Errorf("Insert String '%s' failed", s)
 	}
 	return nil
 }
@@ -614,7 +614,7 @@ func (l *ListIter) InsertString(s string) error {
 func (l *ListIter) insertInt(i C.int64_t) error {
 	r := C.xmmsv_list_iter_insert_int(l.data, i)
 	if int(r) == 0 {
-		return errors.New("Insert int failed")
+		return fmt.Errorf("Insert int %d failed", int64(i))
 	}
 	return nil
 }
@@ -630,7 +630,7 @@ func (l *ListIter) InsertInt64(i int64) error {
 func (l *ListIter) insertFloat(f C.float) error {
 	r := C.xmmsv_list_iter_insert_float(l.data, f)
 	if int(r) == 0 {
-		return errors.New("Insert float failed")
+		return fmt.Errorf("Insert float %f failed", float32(f))
 	}
 	return nil
 }

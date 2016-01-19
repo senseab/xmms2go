@@ -12,7 +12,7 @@ package xmms2go
 */
 import "C"
 import (
-	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"unsafe"
@@ -144,15 +144,13 @@ func NewValueFromAny(any interface{}) ValueAny {
 					m[k.String()] = _value.MapIndex(k).Interface()
 				}
 
-				/*
-					d := NewDict()
-					                err := d.FromMap(m)
-					                if err != nil {
-									    x = NewValueFromNone().ToValue()
-									    break
-					                }
-					                x = d.ToValue()
-				*/
+				d := NewDict()
+				err := d.FromMap(m)
+				if err != nil {
+					x = NewValueFromNone().ToValue()
+					break
+				}
+				x = d.ToValue()
 				break
 			}
 
@@ -273,20 +271,20 @@ func (x *Value) GetError() (error, error) {
 	var cErrInfo *C.char
 	defer C.free(unsafe.Pointer(cErrInfo))
 	if x.IsError() == false {
-		return nil, errors.New("Not an error type")
+		return nil, fmt.Errorf("Not an error type")
 	}
 	r := int(C.xmmsv_get_error(x.data, &cErrInfo))
 	if r == 0 {
-		return nil, errors.New("Parse type error failed")
+		return nil, fmt.Errorf("Parse type error failed")
 	}
-	return errors.New(C.GoString(cErrInfo)), nil
+	return fmt.Errorf(C.GoString(cErrInfo)), nil
 }
 
 func (x *Value) GetInt32() (int32, error) {
 	var i C.int32_t
 	r := int(C.xmmsv_get_int32(x.data, &i))
 	if r == 0 {
-		return 0, errors.New("Parse type int32 failed")
+		return 0, fmt.Errorf("Parse type int32 failed")
 	}
 	return int32(i), nil
 }
@@ -295,7 +293,7 @@ func (x *Value) GetInt64() (int64, error) {
 	var i C.int64_t
 	r := int(C.xmmsv_get_int64(x.data, &i))
 	if r == 0 {
-		return 0, errors.New("Parse type int64 failed")
+		return 0, fmt.Errorf("Parse type int64 failed")
 	}
 	return int64(i), nil
 }
@@ -314,7 +312,7 @@ func (x *Value) getFloat() (C.float, error) {
 	var f C.float
 	r := int(C.xmmsv_get_float(x.data, &f))
 	if r == 0 {
-		return 0, errors.New("Parse type float failed")
+		return 0, fmt.Errorf("Parse type float failed")
 	}
 	return f, nil
 }
@@ -325,7 +323,7 @@ func (x *Value) GetBytes() ([]byte, error) {
 	defer C.free(unsafe.Pointer(b))
 	r := int(C.xmmsv_get_bin(x.data, &b, &l))
 	if r == 0 {
-		return nil, errors.New("Parse type bytes failed")
+		return nil, fmt.Errorf("Parse type bytes failed")
 	}
 	return C.GoBytes(unsafe.Pointer(b), C.int(l)), nil
 
@@ -337,14 +335,14 @@ func (x *Value) GetString() (string, error) {
 
 	r := int(C.xmmsv_get_string(x.data, &s))
 	if r == 0 {
-		return "", errors.New("Parse type string failed")
+		return "", fmt.Errorf("Parse type string failed")
 	}
 	return C.GoString(s), nil
 }
 
 func (x *Value) GetList() (List, error) {
 	if !x.IsType(XMMSV_TYPE_LIST) {
-		return nil, errors.New("Parse type list failed")
+		return nil, fmt.Errorf("Parse type list failed")
 	}
 	l := new(list)
 	l.data = x.export()
@@ -352,9 +350,14 @@ func (x *Value) GetList() (List, error) {
 	return L, nil
 }
 
-// Dummy
 func (x *Value) GetDict() (Dict, error) {
-	return nil, nil
+	if !x.IsType(XMMSV_TYPE_DICT) {
+		return nil, fmt.Errorf("Parse type dict failed")
+	}
+	d := new(dict)
+	d.data = x.export()
+	var D Dict = d
+	return D, nil
 }
 
 // Dummy
@@ -386,8 +389,11 @@ func (x *Value) GetAny() (interface{}, error) {
 		}
 		return l.ToSlice()
 	case XMMSV_TYPE_DICT:
-		return x.GetDict()
-		//return x.GetDict().ToMap()
+		d, err := x.GetDict()
+		if err != nil {
+			return nil, err
+		}
+		return d.ToMap()
 	case XMMSV_TYPE_COLL:
 		return x.GetCollection()
 	case XMMSV_TYPE_NONE:
@@ -397,7 +403,7 @@ func (x *Value) GetAny() (interface{}, error) {
 	default:
 		return x.getAny()
 	}
-	return nil, errors.New("What?")
+	return nil, fmt.Errorf("What?")
 }
 
 // Okay, we need to implement the collection type.
