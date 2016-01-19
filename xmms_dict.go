@@ -206,7 +206,6 @@ func (d *dict) GetType(key string) int {
 func (d *dict) FromMap(val map[string]interface{}) error {
 	for k, v := range val {
 		val := NewValueFromAny(v)
-		defer val.Unref()
 		r := d.Set(k, val)
 		if int(r) == 0 {
 			return fmt.Errorf("Convert from map[string]interface{} failed, key='%s' value=%v", k, v)
