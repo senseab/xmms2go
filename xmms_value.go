@@ -360,9 +360,14 @@ func (x *Value) GetDict() (Dict, error) {
 	return D, nil
 }
 
-// Dummy
 func (x *Value) GetCollection() (Collection, error) {
-	return nil, nil
+    if !x.IsType(XMMSV_TYPE_COLL){
+	    return nil, fmt.Errorf("Parse type collection failed")
+    }
+    c := new(collection)
+    c.data = x.export()
+    var _C Collection = c
+    return _C, nil
 }
 
 // Dummy
