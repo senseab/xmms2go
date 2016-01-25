@@ -361,18 +361,18 @@ func (x *Value) GetDict() (Dict, error) {
 }
 
 func (x *Value) GetCollection() (Collection, error) {
-    if !x.IsType(XMMSV_TYPE_COLL){
-	    return nil, fmt.Errorf("Parse type collection failed")
-    }
-    c := new(collection)
-    c.data = x.export()
-    var _C Collection = c
-    return _C, nil
+	if !x.IsType(XMMSV_TYPE_COLL) {
+		return nil, fmt.Errorf("Parse type collection failed")
+	}
+	c := new(collection)
+	c.data = x.export()
+	var _C Collection = c
+	return _C, nil
 }
 
-// Dummy
 func (x *Value) GetBitBuffer() (BitBuffer, error) {
-	return nil, nil
+    b := NewBitBuffer()
+    return b.FromValue(x)
 }
 
 func (x *Value) GetAny() (interface{}, error) {
