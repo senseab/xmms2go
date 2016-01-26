@@ -1,6 +1,8 @@
 XMMS2GO
 =====
 
+[![GoDoc](https://godoc.org/github.com/tonychee7000/xmms2go?status.svg)](https://godoc.org/github.com/tonychee7000/xmms2go)
+
 A golang binding to libxmmsclient.
 
 Notice

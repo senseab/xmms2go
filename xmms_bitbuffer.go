@@ -157,31 +157,31 @@ func (b *bitBuffer) ToValue() (*Value, error) {
 
 type BitBuffer interface {
 	ValueNone
-    GetBits(bits int) (int64, error)
-    GetData(length int) ([]byte, error)
-    PutBits(bits int, data int64) error
-    PutBitsAt(bits int, data int64, offset int) error
-    PutData(b []byte) error
-    Align() error
-    Goto(pos int) error
-    Pos() int
-    Rewind() int
-    End() int
-    Len() int
-    GetBuffer() ([]byte, error)
-    FromValue(val *Value) error
-    ToValue() (*Value, error)
+	GetBits(bits int) (int64, error)
+	GetData(length int) ([]byte, error)
+	PutBits(bits int, data int64) error
+	PutBitsAt(bits int, data int64, offset int) error
+	PutData(b []byte) error
+	Align() error
+	Goto(pos int) error
+	Pos() int
+	Rewind() int
+	End() int
+	Len() int
+	GetBuffer() ([]byte, error)
+	FromValue(val *Value) error
+	ToValue() (*Value, error)
 }
 
 type BitBufferReadonly interface {
 	ValueNone
-    GetBits(bits int) (int64, error)
-    GetData(length int) ([]byte, error)
-    Goto(pos int) error
-    Pos() int
-    Rewind() int
-    End() int
-    Len() int
-    GetBuffer() ([]byte, error)
-    ToValue() (*Value, error)
+	GetBits(bits int) (int64, error)
+	GetData(length int) ([]byte, error)
+	Goto(pos int) error
+	Pos() int
+	Rewind() int
+	End() int
+	Len() int
+	GetBuffer() ([]byte, error)
+	ToValue() (*Value, error)
 }

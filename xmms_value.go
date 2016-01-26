@@ -371,8 +371,8 @@ func (x *Value) GetCollection() (Collection, error) {
 }
 
 func (x *Value) GetBitBuffer() (BitBuffer, error) {
-    b := NewBitBuffer()
-    return b.FromValue(x)
+	b := NewBitBuffer()
+	return b.FromValue(x)
 }
 
 func (x *Value) GetAny() (interface{}, error) {
