@@ -388,7 +388,7 @@ func (l *list) FromSlice(s []interface{}) error {
 }
 
 func (l *list) ToSlice() ([]interface{}, error) {
-    var v []interface{}
+	var v []interface{}
 
 	i, err := NewListIter(l)
 	if err != nil {
