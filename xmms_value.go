@@ -33,6 +33,7 @@ const (
 	XMMSVTYPEEND
 )
 
+// In 32bit system.
 const XMMSVTYPEINT32 = XMMSVTYPEINT64
 
 // *C.xmmsv_t
