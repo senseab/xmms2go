@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*Package xmms2go
-Xmms2Go is a Go binding for libxmmsclient.
+/*
+Package xmms2Go is a Go binding for libxmmsclient.
 It's easy to use and friendly for go developers.
 Just import me to use.
 
