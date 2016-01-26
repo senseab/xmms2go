@@ -28,7 +28,7 @@ func NewCollection(_type int) Collection {
 }
 
 func (c *collection) SetIDList(ids []int) {
-	cIds := make([](C.int), 0)
+	var cIds [](C.int)
 	for _, v := range ids {
 		cIds = append(cIds, (C.int)(v))
 	}

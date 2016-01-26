@@ -117,7 +117,7 @@ func NewValueFromAny(any interface{}) ValueAny {
 				break
 			}
 			if matched {
-				s := make([]interface{}, 0)
+                var s []interface{}
 				for i := 0; i < _value.Len(); i++ {
 					s = append(s, _value.Index(i).Interface())
 				}

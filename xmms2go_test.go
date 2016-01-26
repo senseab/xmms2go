@@ -90,7 +90,7 @@ func TestValue(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	slice1 := make([]interface{}, 0)
+    var slice1 []interface{}
 	for i := 0; i < 10; i++ {
 		slice1 = append(slice1, int64(i))
 	}
@@ -110,7 +110,7 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice2=", slice2)
 
-	slice3 := make([]interface{}, 0)
+    var slice3 []interface{}
 	var empty interface{}
 	t.Log("empty=", empty)
 	for i := 0; i < 10; i++ {
@@ -131,7 +131,7 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice4=", slice4)
 
-	slice5 := make([]interface{}, 0)
+    var slice5 []interface{}
 	bytes := ([]byte)("Test")
 	for i := 0; i < 10; i++ {
 		slice5 = append(slice5, bytes)
@@ -151,7 +151,7 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice6=", slice6)
 
-	slice7 := make([]interface{}, 0)
+    var slice7 []interface{}
 	b := byte('a')
 	for i := 0; i < 10; i++ {
 		slice7 = append(slice7, b)
@@ -171,7 +171,7 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice8=", slice8)
 
-	slice9 := make([]interface{}, 0)
+    var slice9 []interface{}
 	bi := make([]int, 2)
 	bi[0] = 1
 	bi[1] = 2
@@ -193,7 +193,7 @@ func TestList(t *testing.T) {
 	}
 	t.Log("Slice10=", slice10)
 
-	slice11 := make([]interface{}, 0)
+    var slice11 []interface{}
 	for i := 10; i > 0; i-- {
 		slice11 = append(slice11, float32(i)*3.14)
 	}
