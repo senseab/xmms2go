@@ -155,6 +155,7 @@ func (b *bitBuffer) ToValue() (*Value, error) {
 	return v, nil
 }
 
+// Use this BitBuffer interface to avoid native value methods.
 type BitBuffer interface {
 	ValueNone
 	GetBits(bits int) (int64, error)

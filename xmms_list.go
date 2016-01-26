@@ -416,6 +416,7 @@ func (l *list) ToSlice() ([]interface{}, error) {
 	return v, nil
 }
 
+// Use this List interface to avoid native Value methods.
 type List interface {
 	ValueNone
 	Append(val *Value) error

@@ -203,6 +203,7 @@ func (d *dict) GetType(key string) int {
 	return int(r)
 }
 
+// Convert from map[string]interface{}
 func (d *dict) FromMap(val map[string]interface{}) error {
 	for k, v := range val {
 		val := NewValueFromAny(v).ToValue()
@@ -214,6 +215,7 @@ func (d *dict) FromMap(val map[string]interface{}) error {
 	return nil
 }
 
+// Convert to map[string]interface{}
 func (d *dict) ToMap() (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	di, err := NewDictIter(d)
