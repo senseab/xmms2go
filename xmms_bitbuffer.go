@@ -137,7 +137,7 @@ func (b *bitBuffer) GetBuffer() ([]byte, error) {
 }
 
 // Call xmmsv_bitbuffer_serialize_value()
-func (b *bitBuffer) FromValue(val *Value) error {
+func (b *bitBuffer) SerializeValue(val *Value) error {
 	r := C.xmmsv_bitbuffer_serialize_value(b.data, val.export())
 	if int(r) == 0 {
 		return fmt.Errorf("Convert from value failed")
@@ -146,7 +146,7 @@ func (b *bitBuffer) FromValue(val *Value) error {
 }
 
 // Call xmmsv_bitbuffer_deserialize_value()
-func (b *bitBuffer) ToValue() (*Value, error) {
+func (b *bitBuffer) DeserializeValue() (*Value, error) {
 	v := new(Value)
 	r := C.xmmsv_bitbuffer_deserialize_value(b.data, &(val.data))
 	if int(r) == 0 {
@@ -170,8 +170,8 @@ type BitBuffer interface {
 	End() int
 	Len() int
 	GetBuffer() ([]byte, error)
-	FromValue(val *Value) error
-	ToValue() (*Value, error)
+	SerializeValue(val *Value) error
+	DeserializeValue() (*Value, error)
 }
 
 type BitBufferReadonly interface {
@@ -184,5 +184,5 @@ type BitBufferReadonly interface {
 	End() int
 	Len() int
 	GetBuffer() ([]byte, error)
-	ToValue() (*Value, error)
+	DeserializeValue() (*Value, error)
 }
