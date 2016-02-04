@@ -1,1 +1,0 @@
-package xmms2go

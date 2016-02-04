@@ -19,13 +19,11 @@ import (
 	"fmt"
 	"unsafe"
 )
-
 // A class of xmmsclient
 type Xmms2Client struct {
-	Connection  *C.xmmsc_connection_t
+	connection  *C.xmmsc_connection_t
 	result      *C.xmmsc_result_t
-	returnValue *C.xmmsv_t
-	errorBuff   *C.char
+	returnValue *Value
 }
 
 // Make new xmmsclient instance.
@@ -33,8 +31,9 @@ func NewXmms2Client(clientName string) (*Xmms2Client, error) {
 	x := new(Xmms2Client)
 	cClientName := C.CString(clientName)
 	defer C.free(unsafe.Pointer(cClientName))
-	x.Connection = C.xmmsc_init(cClientName)
-	if x.Connection == nil {
+	x.connection = C.xmmsc_init(cClientName)
+    x.returnValue = new(Value)
+	if x.connection == nil {
 		return nil, errors.New("Client init failed")
 	}
 	return x, nil
@@ -51,9 +50,9 @@ Connect to xmms server, both tcp or unix socket are works.
 func (x *Xmms2Client) Connect(url string) error {
 	cUrl := C.CString(url)
 	defer C.free(unsafe.Pointer(cUrl))
-	r := C.xmmsc_connect(x.Connection, cUrl)
+	r := C.xmmsc_connect(x.connection, cUrl)
 	if r == 0 {
-		errInfo := C.GoString(C.xmmsc_get_last_error(x.Connection))
+		errInfo := C.GoString(C.xmmsc_get_last_error(x.connection))
 		return errors.New(fmt.Sprintf("Connection failed: %s", errInfo))
 	}
 	return nil
@@ -64,36 +63,40 @@ func (x *Xmms2Client) Connect(url string) error {
 // Start playback.
 func (x *Xmms2Client) Play() error {
 	defer x.ResultUnref()
-	x.result = C.xmmsc_playback_start(x.Connection)
+    defer x.returnValue.Unref()
+	x.result = C.xmmsc_playback_start(x.connection)
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	return x.checkError("Playback start returned error: %s")
 }
 
 // Pause playback.
 func (x *Xmms2Client) Pause() error {
 	defer x.ResultUnref()
-	x.result = C.xmmsc_playback_pause(x.Connection)
+    defer x.returnValue.Unref()
+	x.result = C.xmmsc_playback_pause(x.connection)
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	return x.checkError("Playback pause returned error: %s")
 }
 
 // Stop playback.
 func (x *Xmms2Client) Stop() error {
 	defer x.ResultUnref()
-	x.result = C.xmmsc_playback_stop(x.Connection)
+    defer x.returnValue.Unref()
+	x.result = C.xmmsc_playback_stop(x.connection)
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	return x.checkError("Playback stop returned error: %s")
 }
 
 // Stop decoding of current song.
 func (x *Xmms2Client) Tickle() error {
 	defer x.ResultUnref()
-	x.result = C.xmmsc_playback_tickle(x.Connection)
+    defer x.returnValue.Unref()
+	x.result = C.xmmsc_playback_tickle(x.connection)
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	return x.checkError("Playback tickle returned error: %s")
 
 }
@@ -101,9 +104,10 @@ func (x *Xmms2Client) Tickle() error {
 // Get Current ID. If failed, return -1 and error info
 func (x *Xmms2Client) CurrentID() (int, error) {
 	defer x.ResultUnref()
-	x.result = C.xmmsc_playback_current_id(x.Connection)
+    defer x.returnValue.Unref()
+	x.result = C.xmmsc_playback_current_id(x.connection)
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	err := x.checkError("Get current ID failed: %s")
 	if err != nil {
 		return -1, err
@@ -116,10 +120,11 @@ func (x *Xmms2Client) CurrentID() (int, error) {
 // Get medialib info
 func (x *Xmms2Client) MediaLibInfo(id int) (map[string]interface{}, error) {
 	defer x.ResultUnref()
+    defer x.returnValue.Unref()
 	m := make(map[string]interface{})
-	x.result = C.xmmsc_medialib_get_info(x.Connection, C.int(id))
+	x.result = C.xmmsc_medialib_get_info(x.connection, C.int(id))
 	C.xmmsc_result_wait(x.result)
-	x.returnValue = C.xmmsc_result_get_value(x.result)
+	x.returnValue.data = C.xmmsc_result_get_value(x.result)
 	err := x.checkError("Get medialib info failed: %s")
 	if err != nil {
 		return nil, err
@@ -141,11 +146,11 @@ You SHOULD use this when you quit.
     x := NewXmms2Client("test")
     x.Connect("somewhere")
     defer x.Unref()
+    defer x.ResultUnref()
     os.Exit(0)
 
 */
 func (x *Xmms2Client) Unref() {
-	x.ResultUnref() // ensure result unref
 	C.xmmsc_unref(x.Connection)
 }
 
@@ -153,15 +158,16 @@ func (x *Xmms2Client) Unref() {
 
 func (x *Xmms2Client) checkError(hintString string) error {
 	if int(C.macro_xmmsc_result_iserror(x.result)) != 0 {
-		x.errorBuff = C.xmmsc_get_last_error(x.Connection)
+        errorBuff := C.xmmsc_get_last_error(x.Connection)
+	    defer C.free(unsafe.Pointer(errorBuff))
 		return errors.New(fmt.Sprintf(
-			hintString, C.GoString(x.errorBuff),
+			hintString, C.GoString(errorBuff),
 		))
 	}
-	defer C.free(unsafe.Pointer(x.errorBuff))
 	return nil
 }
 
+// deprecated
 // --- Data operations ---
 
 // Get integer form xmmsv_t
