@@ -372,8 +372,13 @@ func (x *Value) GetCollection() (Collection, error) {
 }
 
 func (x *Value) GetBitBuffer() (BitBuffer, error) {
-	b := NewBitBuffer()
-	return b.FromValue(x)
+    if !x.IsType(XMMSVTYPEBITBUFFER){
+        return nil, fmt.Errorf("Parse type bitbuffer failed")
+    }
+    b := new(bitBuffer)
+    b.data = x.export()
+    var _B BitBuffer = b
+	return _B, nil
 }
 
 func (x *Value) GetAny() (interface{}, error) {

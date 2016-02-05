@@ -73,10 +73,9 @@ func (b *bitBuffer) PutBitsAt(bits int, data int64, offset int) error {
 	return nil
 }
 
-func (b *bitBuffer) PutData(b []byte) error {
-	length := len(b)
-	cB := C.CBytes(b)
-	defer C.free(unsafe.Pointer(cB))
+func (b *bitBuffer) PutData(bb []byte) error {
+	length := len(bb)
+	cB := (*C.uchar)(unsafe.Pointer(&bb[0]))
 	r := C.xmmsv_bitbuffer_put_data(b.data, cB, C.int(length))
 	if int(r) == 0 {
 		return fmt.Errorf("Put data with %d bytes failed", length)
@@ -101,10 +100,10 @@ func (b *bitBuffer) Goto(pos int) error {
 }
 
 func (b *bitBuffer) Pos() int {
-	return C.int(C.xmmsv_bitbuffer_pos(b.data))
+	return int(C.xmmsv_bitbuffer_pos(b.data))
 }
 
-func (b *bitBuffer) Rewind() int {
+func (b *bitBuffer) Rewind() error {
 	r := C.xmmsv_bitbuffer_rewind(b.data)
 	if int(r) == 0 {
 		return fmt.Errorf("Rewind buffer failed")
@@ -112,7 +111,7 @@ func (b *bitBuffer) Rewind() int {
 	return nil
 }
 
-func (b *bitBuffer) End() int {
+func (b *bitBuffer) End() error {
 	r := C.xmmsv_bitbuffer_end(b.data)
 	if int(r) == 0 {
 		return fmt.Errorf("End buffer failed")
@@ -121,39 +120,21 @@ func (b *bitBuffer) End() int {
 }
 
 func (b *bitBuffer) Len() int {
-	return C.int(C.xmmsv_bitbuffer_len(b.data))
+	return int(C.xmmsv_bitbuffer_len(b.data))
 }
 
 func (b *bitBuffer) GetBuffer() ([]byte, error) {
 	var bb *C.uchar
 	var length C.uint
-	r := C.xmmsv_get_bitbuffer(b.data, unsafe.Pointer(&bb), &length)
+	r := C.xmmsv_get_bitbuffer(b.data, &bb, &length)
 	if int(r) == 0 {
 		return nil, fmt.Errorf("Get buffer failed")
 	} else {
 		defer C.free(unsafe.Pointer(bb))
 	}
-	return C.GoBytes(bb, length), nil
+	return C.GoBytes(unsafe.Pointer(bb), C.int(length)), nil
 }
 
-// Call xmmsv_bitbuffer_serialize_value()
-func (b *bitBuffer) SerializeValue(val *Value) error {
-	r := C.xmmsv_bitbuffer_serialize_value(b.data, val.export())
-	if int(r) == 0 {
-		return fmt.Errorf("Convert from value failed")
-	}
-	return nil
-}
-
-// Call xmmsv_bitbuffer_deserialize_value()
-func (b *bitBuffer) DeserializeValue() (*Value, error) {
-	v := new(Value)
-	r := C.xmmsv_bitbuffer_deserialize_value(b.data, &(val.data))
-	if int(r) == 0 {
-		return nil, fmt.Errorf("Convert to value failed")
-	}
-	return v, nil
-}
 
 // Use this BitBuffer interface to avoid native value methods.
 type BitBuffer interface {
@@ -166,12 +147,10 @@ type BitBuffer interface {
 	Align() error
 	Goto(pos int) error
 	Pos() int
-	Rewind() int
-	End() int
+	Rewind() error
+	End() error
 	Len() int
 	GetBuffer() ([]byte, error)
-	SerializeValue(val *Value) error
-	DeserializeValue() (*Value, error)
 }
 
 type BitBufferReadonly interface {
@@ -180,9 +159,8 @@ type BitBufferReadonly interface {
 	GetData(length int) ([]byte, error)
 	Goto(pos int) error
 	Pos() int
-	Rewind() int
-	End() int
+	Rewind() error
+	End() error
 	Len() int
 	GetBuffer() ([]byte, error)
-	DeserializeValue() (*Value, error)
 }
