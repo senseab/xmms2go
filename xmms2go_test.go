@@ -207,8 +207,14 @@ func TestList(t *testing.T) {
 	t.Log("Size=", ls.GetSize())
 
 	// Do sort
+    t.Log("Now test Sort(func)")
 	ls.RestrictType(XMMSVTYPEFLOAT)
-	err = ls.Sort()
+    f := func(a *Value, b *Value) int {
+        va, _ := a.GetFloat32()
+        vb, _ := b.GetFloat32()
+        return int(va - vb)
+    }
+	err = ls.Sort(f)
 	if err != nil {
 		t.Error(err)
 	}

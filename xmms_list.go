@@ -7,58 +7,11 @@ package xmms2go
 #cgo LDFLAGS: -lxmmsclient
 #include <xmmsc/xmmsv.h>
 #include <malloc.h>
-#include <string.h>
 
-static int
-list_compare_int (xmmsv_t **a, xmmsv_t **b)
-{
-	int va, vb;
-	va = vb = -1;
-	xmmsv_get_int (*a, &va);
-	xmmsv_get_int (*b, &vb);
-	return va - vb;
-}
+extern int callListCompareFunc(xmmsv_t**, xmmsv_t**);
 
-static int
-list_compare_string (xmmsv_t **a, xmmsv_t **b)
-{
-	const char *va, *vb;
-	va = vb = NULL;
-	xmmsv_get_string (*a, &va);
-	xmmsv_get_string (*b, &vb);
-	return strcmp (va, vb);
-}
-
-static int
-list_compare_float (xmmsv_t **a, xmmsv_t **b){
-    float va, vb;
-    va = vb = 0;
-    xmmsv_get_float (*a, &va);
-    xmmsv_get_float (*b, &vb);
-    return (int)(va - vb);
-}
-
-int do_list_sort(xmmsv_t *v){
-    xmmsv_type_t _type;
-    int r = xmmsv_list_get_type(v, &_type);
-    if (r == 0) {
-        return -1;
-    }
-
-    switch(_type){
-    case XMMSV_TYPE_INT64:
-        return xmmsv_list_sort(v, list_compare_int);
-        break;
-    case XMMSV_TYPE_STRING:
-        return xmmsv_list_sort(v, list_compare_string);
-        break;
-    case XMMSV_TYPE_FLOAT:
-        return xmmsv_list_sort(v, list_compare_float);
-        break;
-    default:
-        return 0;
-    }
-    return 1;
+static int list_sort_wrapper(xmmsv_t *v){
+    return xmmsv_list_sort(v, callListCompareFunc);
 }
 #endif
 */
@@ -66,7 +19,23 @@ import "C"
 import (
 	"fmt"
 	"unsafe"
+    "sync"
 )
+
+type ListCompareFunc func(*Value, *Value) int
+var listCompareFunc ListCompareFunc
+
+//export callListCompareFunc
+func callListCompareFunc(a **C.xmmsv_t, b **C.xmmsv_t) C.int {
+    va := new(Value)
+    va.data = *a
+    //defer va.Unref()
+    vb := new(Value)
+    vb.data = *b
+    //defer vb.Unref()
+
+    return C.int(listCompareFunc(va, vb))
+}
 
 // XmmsList
 type list struct {
@@ -137,16 +106,17 @@ func (l *list) Clear() error {
 	return nil
 }
 
-// Only int, string, float can be sorted.
 // RestrictType() should be called first.
-func (l *list) Sort() error {
-	r := C.do_list_sort(l.data)
-	switch int(r) {
-	case -1:
-		return fmt.Errorf("Get type failed.")
-	case 0:
-		return fmt.Errorf("No sortable data")
-	}
+func (l *list) Sort(f ListCompareFunc) error {
+    lock := new(sync.Mutex)
+    lock.Lock()
+    defer lock.Unlock()
+
+    listCompareFunc = f
+    r := C.list_sort_wrapper(l.data)
+    if int(r) == 0{
+        return fmt.Errorf("Sort failed")
+    }
 	return nil
 }
 
@@ -387,6 +357,7 @@ func (l *list) FromSlice(s []interface{}) error {
 	return nil
 }
 
+// We use ToSlice() to replace the origin foreach function.
 func (l *list) ToSlice() ([]interface{}, error) {
 	var v []interface{}
 
@@ -453,7 +424,7 @@ type List interface {
 	SetInt32(pos int, val int32) error
 	SetInt64(pos int, val int64) error
 	SetString(pos int, val string) error
-	Sort() error
+	Sort(f ListCompareFunc) error
 	ToSlice() ([]interface{}, error)
 }
 

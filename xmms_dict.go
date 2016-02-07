@@ -216,6 +216,7 @@ func (d *dict) FromMap(val map[string]interface{}) error {
 }
 
 // Convert to map[string]interface{}
+// We use ToMap to replace origin foreach function.
 func (d *dict) ToMap() (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	di, err := NewDictIter(d)

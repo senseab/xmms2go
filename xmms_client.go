@@ -20,169 +20,169 @@ import (
 	"unsafe"
 )
 
-type Connector struct{
-    connection *C.xmmsc_connection_t
+type Connector struct {
+	connection *C.xmmsc_connection_t
 }
 
-func NewConnector(clientName string)(*Connector, error){
-    x := new(Connector)
+func NewConnector(clientName string) (*Connector, error) {
+	x := new(Connector)
 	cClientName := C.CString(clientName)
 	defer C.free(unsafe.Pointer(cClientName))
 	x.connection = C.xmmsc_init(cClientName)
 	if x.connection == nil {
 		return nil, fmt.Errorf("Client init failed")
 	}
-    return x, nil
+	return x, nil
 }
 
-func (c *Connector)Connect(url string) error {
+func (c *Connector) Connect(url string) error {
 	cUrl := C.CString(url)
 	defer C.free(unsafe.Pointer(cUrl))
 	r := C.xmmsc_connect(c.connection, cUrl)
 	if r == 0 {
-        return fmt.Errorf("Connection failed %v", c.GetLastError())
-    }
-    return nil
+		return fmt.Errorf("Connection failed %v", c.GetLastError())
+	}
+	return nil
 }
 
-func (c *Connector)UnRef() {
-    C.xmmsc_unref(c.export())
-}
-
-// Dummy
-func (c *Connector)LockSet() {
+func (c *Connector) UnRef() {
+	C.xmmsc_unref(c.export())
 }
 
 // Dummy
-func (c *Connector)DisconnectCallBackSet() {
+func (c *Connector) LockSet() {
 }
 
 // Dummy
-func (c *Connector)DisconnectCallBackSetFull() {
+func (c *Connector) DisconnectCallBackSet() {
 }
 
 // Dummy
-func (c *Connector)IONeedOutCallBackSet(){
+func (c *Connector) DisconnectCallBackSetFull() {
 }
 
 // Dummy
-func (c *Connector)IONeedOutCallBackSetFull(){
+func (c *Connector) IONeedOutCallBackSet() {
 }
 
-func (c *Connector)IODisconnect(){
-    C.xmmsc_io_disconnect(c.export())
+// Dummy
+func (c *Connector) IONeedOutCallBackSetFull() {
 }
 
-func (c *Connector)IOWantOut() error{
-    r := C.xmmsc_io_want_out(c.export())
-    if int(r) == 0{
-        return fmt.Errorf("IO Want Out failed")
-    }
-    return nil
+func (c *Connector) IODisconnect() {
+	C.xmmsc_io_disconnect(c.export())
 }
 
-func (c *Connector)IOOutHandle() error {
-    r := C.xmmsc_io_out_handle(c.export())
-    if int(r) == 0{
-        return fmt.Errorf("IO Out Handle failed")
-    }
-    return nil
+func (c *Connector) IOWantOut() error {
+	r := C.xmmsc_io_want_out(c.export())
+	if int(r) == 0 {
+		return fmt.Errorf("IO Want Out failed")
+	}
+	return nil
 }
 
-func (c *Connector)IOInHandle() error{
-    r := C.xmmsc_io_in_handle(c.export())
-    if int(r) == 0{
-        return fmt.Errorf("IO In Handle failed")
-    }
-    return nil
+func (c *Connector) IOOutHandle() error {
+	r := C.xmmsc_io_out_handle(c.export())
+	if int(r) == 0 {
+		return fmt.Errorf("IO Out Handle failed")
+	}
+	return nil
 }
 
-func (c *Connector)IOFdGet() error{
-    r := C.xmmsc_io_fd_get(c.export())
-    if int(r) == 0 {
-        return fmt.Errorf("IO Fd Get failed")
-    }
-    return nil
+func (c *Connector) IOInHandle() error {
+	r := C.xmmsc_io_in_handle(c.export())
+	if int(r) == 0 {
+		return fmt.Errorf("IO In Handle failed")
+	}
+	return nil
 }
 
-func (c *Connector)Quit() *Result{
-    r := new(Result)
-    r.result = C.xmmsc_quit(c.export())
-    return r
+func (c *Connector) IOFdGet() error {
+	r := C.xmmsc_io_fd_get(c.export())
+	if int(r) == 0 {
+		return fmt.Errorf("IO Fd Get failed")
+	}
+	return nil
 }
 
-func (c *Connector)BroadCastQuit() *Result{
-    r := new(Result)
-    r.result = C.xmmsc_broadcast_quit(c.export())
-    return r
+func (c *Connector) Quit() *Result {
+	r := new(Result)
+	r.result = C.xmmsc_quit(c.export())
+	return r
 }
 
-func (c *Connector)GetLastError() error {
-        cErrInfo := C.xmmsc_get_last_error(c.connection)
-        defer C.free(unsafe.Pointer(cErrInfo))
-		return fmt.Errorf(C.GoString(cErrInfo))
+func (c *Connector) BroadCastQuit() *Result {
+	r := new(Result)
+	r.result = C.xmmsc_broadcast_quit(c.export())
+	return r
 }
 
-func (c *Connector)export() (*C.xmmsc_connection_t){
-    return c.connection
+func (c *Connector) GetLastError() error {
+	cErrInfo := C.xmmsc_get_last_error(c.connection)
+	defer C.free(unsafe.Pointer(cErrInfo))
+	return fmt.Errorf(C.GoString(cErrInfo))
+}
+
+func (c *Connector) export() *C.xmmsc_connection_t {
+	return c.connection
 }
 
 type Result struct {
-    result *C.xmmsc_result_t
+	result *C.xmmsc_result_t
 }
 
-func NewResult() *Result{
-    return new(Result)
+func NewResult() *Result {
+	return new(Result)
 }
 
-func (r *Result)GetClass() int {
-    return int(C.xmmsc_result_get_class(r.export()))
+func (r *Result) GetClass() int {
+	return int(C.xmmsc_result_get_class(r.export()))
 }
 
-func (r *Result)Disconnect() {
-    C.xmmsc_result_disconnect(r.export())
+func (r *Result) Disconnect() {
+	C.xmmsc_result_disconnect(r.export())
 }
 
-func (r *Result)UnRef() {
-    C.xmmsc_result_unref(r.export())
+func (r *Result) UnRef() {
+	C.xmmsc_result_unref(r.export())
 }
 
-func (r *Result)Wait() {
-    C.xmmsc_result_wait(r.export())
+func (r *Result) Wait() {
+	C.xmmsc_result_wait(r.export())
 }
 
-func (r *Result)GetValue() *Value {
-    v := new(Value)
-    v.data = C.xmmsc_result_get_value(r.export())
-    return v
-}
-
-// Dummy
-func (r *Result)NotifierSetDefault(){
+func (r *Result) GetValue() *Value {
+	v := new(Value)
+	v.data = C.xmmsc_result_get_value(r.export())
+	return v
 }
 
 // Dummy
-func (r *Result)NotifierSetDefaultFull(){
+func (r *Result) NotifierSetDefault() {
 }
 
 // Dummy
-func (r *Result)NotifierSetRaw(){
+func (r *Result) NotifierSetDefaultFull() {
 }
 
 // Dummy
-func (r *Result)NotifierSetRawFull(){
+func (r *Result) NotifierSetRaw() {
 }
 
 // Dummy
-func (r *Result)NotifierSetC2C(){
+func (r *Result) NotifierSetRawFull() {
 }
 
 // Dummy
-func (r *Result)NotifierSetC2CFull(){
+func (r *Result) NotifierSetC2C() {
 }
 
-func (r *Result)export() *C.xmmsc_result_t{
-    return r.result
+// Dummy
+func (r *Result) NotifierSetC2CFull() {
+}
+
+func (r *Result) export() *C.xmmsc_result_t {
+	return r.result
 }
 
 // A class of xmmsclient
@@ -273,7 +273,7 @@ func (x *Xmms2Client) CurrentID() (int, error) {
 	if err != nil {
 		return -1, err
 	}
-    i, err := x.returnValue.GetInt32()
+	i, err := x.returnValue.GetInt32()
 	return int(i), err
 }
 
@@ -291,12 +291,12 @@ func (x *Xmms2Client) MediaLibInfo(id int) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-    m, err := x.returnValue.GetDict()
-        defer m.Unref()
-    if err != nil {
-        return nil, err
-    }
-    return m.ToMap()
+	m, err := x.returnValue.GetDict()
+	defer m.Unref()
+	if err != nil {
+		return nil, err
+	}
+	return m.ToMap()
 }
 
 // --- Clean operations ---

@@ -135,7 +135,6 @@ func (b *bitBuffer) GetBuffer() ([]byte, error) {
 	return C.GoBytes(unsafe.Pointer(bb), C.int(length)), nil
 }
 
-
 // Use this BitBuffer interface to avoid native value methods.
 type BitBuffer interface {
 	ValueNone
