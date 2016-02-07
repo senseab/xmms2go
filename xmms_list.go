@@ -18,23 +18,26 @@ static int list_sort_wrapper(xmmsv_t *v){
 import "C"
 import (
 	"fmt"
+	"sync"
 	"unsafe"
-    "sync"
 )
 
+// ListCompareFunc means origin
+//     typedef int (*xmmsv_list_compare_func_t)(xmmsv_t **, xmmsv_t **);
 type ListCompareFunc func(*Value, *Value) int
+
 var listCompareFunc ListCompareFunc
 
 //export callListCompareFunc
 func callListCompareFunc(a **C.xmmsv_t, b **C.xmmsv_t) C.int {
-    va := new(Value)
-    va.data = *a
-    //defer va.Unref()
-    vb := new(Value)
-    vb.data = *b
-    //defer vb.Unref()
+	va := new(Value)
+	va.data = *a
+	//defer va.Unref()
+	vb := new(Value)
+	vb.data = *b
+	//defer vb.Unref()
 
-    return C.int(listCompareFunc(va, vb))
+	return C.int(listCompareFunc(va, vb))
 }
 
 // XmmsList
@@ -108,15 +111,15 @@ func (l *list) Clear() error {
 
 // RestrictType() should be called first.
 func (l *list) Sort(f ListCompareFunc) error {
-    lock := new(sync.Mutex)
-    lock.Lock()
-    defer lock.Unlock()
+	lock := new(sync.Mutex)
+	lock.Lock()
+	defer lock.Unlock()
 
-    listCompareFunc = f
-    r := C.list_sort_wrapper(l.data)
-    if int(r) == 0{
-        return fmt.Errorf("Sort failed")
-    }
+	listCompareFunc = f
+	r := C.list_sort_wrapper(l.data)
+	if int(r) == 0 {
+		return fmt.Errorf("Sort failed")
+	}
 	return nil
 }
 
