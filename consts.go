@@ -47,7 +47,6 @@ const (
 	IPCSignalEnd
 )
 
-
 const ipcCmdFirst = 32
 
 /* IPC command reply */

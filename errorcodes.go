@@ -1,12 +1,13 @@
 package xmms2go
 
+// Error type
 const (
-	XMMSERRORNONE = iota
-	XMMSERRORGENERIC
-	XMMSERROROOM
-	XMMSERRORPERMISSION
-	XMMSERRORNOENT
-	XMMSERRORINVAL
-	XMMSERRORNOSAUSAGE
-	XMMSERRORCOUNT /* must be last */
+	ErrorNone = iota
+	ErrorGeneric
+	ErrorOOM
+	ErrorPermission
+	ErrorNoEntry
+	ErrorInval
+	ErrorNoSausage
+	ErrorCount /* must be last */
 )
