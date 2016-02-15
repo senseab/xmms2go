@@ -8,6 +8,10 @@ package xmms2go
 #include <xmmsclient/xmmsclient.h>
 #include <malloc.h>
 
+static void callDisconnectFunc(void*);
+static void callUserDataFreeFunc(void*);
+static void callIONeedOutCallbackFunc(int, void*);
+
 static int macro_xmmsc_result_iserror(xmmsc_result_t *val) {
     return xmmsc_result_iserror(val);
 }
@@ -18,7 +22,47 @@ import (
 	"errors"
 	"fmt"
 	"unsafe"
+    //"sync"
 )
+
+const (
+    ResultClassDefault = iota
+    ResultClassSignal
+    ResultClassBroadcast
+)
+
+// DisconnectFunc means origin
+//    typedef void (*xmmsc_disconnect_func_t) (void *user_data);
+type DisconnectFunc func(interface{})
+
+// UserDataFreeFunc means origin
+//    typedef void (*xmmsc_user_data_free_func_t) (void *user_data);
+type UserDataFreeFunc func(interface{})
+// IONeedOutCallbackFunc means origin
+//    typedef void (*xmmsc_io_need_out_call_back_func_t) (int, void*);
+type IONeedOutCallbackFunc func(int, interface{})
+
+var disconnectFunc DisconnectFunc
+var userDataFreeFunc UserDataFreeFunc
+var ioNeedOutCallbackFunc IONeedOutCallbackFunc
+
+//export callDisconnectFunc
+func callDisconnectFunc(p unsafe.Pointer){
+    v := *(*interface{})(p)
+    disconnectFunc(v)
+}
+
+//export callUserDataFreeFunc
+func callUserDataFreeFunc(p unsafe.Pointer){
+    v := *(*interface{})(p)
+    userDataFreeFunc(v)
+}
+
+//export callIONeedOutCallbackFunc
+func callIONeedOutCallbackFunc(i C.int, p unsafe.Pointer){
+    v := *(*interface{})(p)
+    ioNeedOutCallbackFunc(int(i), v)
+}
 
 type Connector struct {
 	connection *C.xmmsc_connection_t

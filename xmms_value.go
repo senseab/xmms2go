@@ -20,21 +20,21 @@ import (
 
 // Value type, INT32 is same to INT64
 const (
-	XMMSVTYPENONE = iota
-	XMMSVTYPEERROR
-	XMMSVTYPEINT64
-	XMMSVTYPESTRING
-	XMMSVTYPECOLL
-	XMMSVTYPEBIN
-	XMMSVTYPELIST
-	XMMSVTYPEDICT
-	XMMSVTYPEBITBUFFER
-	XMMSVTYPEFLOAT
-	XMMSVTYPEEND
+	TypeNone = iota
+	TypeError
+	TypeInt64
+	TypeString
+	TypeColl
+	TypeBin
+	TypeList
+	TypeDict
+	TypeBitBuffer
+	TypeFloat
+	TypeEnd
 )
 
 // In 32bit system.
-const XMMSVTYPEINT32 = XMMSVTYPEINT64
+const TypeInt32 = TypeInt64
 
 // *C.xmmsv_t
 type Value struct {
@@ -342,7 +342,7 @@ func (x *Value) GetString() (string, error) {
 }
 
 func (x *Value) GetList() (List, error) {
-	if !x.IsType(XMMSVTYPELIST) {
+	if !x.IsType(TypeList) {
 		return nil, fmt.Errorf("Parse type list failed")
 	}
 	l := new(list)
@@ -352,7 +352,7 @@ func (x *Value) GetList() (List, error) {
 }
 
 func (x *Value) GetDict() (Dict, error) {
-	if !x.IsType(XMMSVTYPEDICT) {
+	if !x.IsType(TypeDict) {
 		return nil, fmt.Errorf("Parse type dict failed")
 	}
 	d := new(dict)
@@ -362,7 +362,7 @@ func (x *Value) GetDict() (Dict, error) {
 }
 
 func (x *Value) GetCollection() (Collection, error) {
-	if !x.IsType(XMMSVTYPECOLL) {
+	if !x.IsType(TypeColl) {
 		return nil, fmt.Errorf("Parse type collection failed")
 	}
 	c := new(collection)
@@ -372,7 +372,7 @@ func (x *Value) GetCollection() (Collection, error) {
 }
 
 func (x *Value) GetBitBuffer() (BitBuffer, error) {
-	if !x.IsType(XMMSVTYPEBITBUFFER) {
+	if !x.IsType(TypeBitBuffer) {
 		return nil, fmt.Errorf("Parse type bitbuffer failed")
 	}
 	b := new(bitBuffer)
@@ -383,33 +383,33 @@ func (x *Value) GetBitBuffer() (BitBuffer, error) {
 
 func (x *Value) GetAny() (interface{}, error) {
 	switch x.GetType() {
-	case XMMSVTYPEINT64:
+	case TypeInt64:
 		return x.GetInt64()
-	case XMMSVTYPEFLOAT:
+	case TypeFloat:
 		return x.GetFloat64()
-	case XMMSVTYPESTRING:
+	case TypeString:
 		return x.GetString()
-	case XMMSVTYPEERROR:
+	case TypeError:
 		return x.GetError()
-	case XMMSVTYPEBIN:
+	case TypeBin:
 		return x.GetBytes()
-	case XMMSVTYPELIST:
+	case TypeList:
 		l, err := x.GetList()
 		if err != nil {
 			return nil, err
 		}
 		return l.ToSlice()
-	case XMMSVTYPEDICT:
+	case TypeDict:
 		d, err := x.GetDict()
 		if err != nil {
 			return nil, err
 		}
 		return d.ToMap()
-	case XMMSVTYPECOLL:
+	case TypeColl:
 		return x.GetCollection()
-	case XMMSVTYPENONE:
+	case TypeNone:
 		return nil, nil
-	case XMMSVTYPEBITBUFFER:
+	case TypeBitBuffer:
 		return x.GetBitBuffer()
 	default:
 		return x.getAny()

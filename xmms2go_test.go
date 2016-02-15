@@ -208,7 +208,7 @@ func TestList(t *testing.T) {
 
 	// Do sort
 	t.Log("Now test Sort(func)")
-	ls.RestrictType(XMMSVTYPEFLOAT)
+	ls.RestrictType(TypeFloat)
 	f := func(a *Value, b *Value) int {
 		va, _ := a.GetFloat32()
 		vb, _ := b.GetFloat32()
