@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 Package xmms2Go is a Go binding for libxmmsclient.
-
 It's easy to use and friendly for go developers.
-
 Just import me to use.
 
     package main
@@ -46,6 +44,5 @@ Just import me to use.
             fmt.Println(err)
         }
     }
-
 */
 package xmms2go
