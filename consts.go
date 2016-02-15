@@ -5,6 +5,7 @@ We need import some enums from C.
 Go should not use contents of native C directly
 */
 
+/* IPC object type */
 const (
 	IPCObjectSignal = iota
 	IPCObjectMain
@@ -23,6 +24,7 @@ const (
 	IPCObjectEnd
 )
 
+/* IPC signals */
 const (
 	IPCSignalPlaylistChanged = iota
 	IPCSignalConfigValueChanged
@@ -45,8 +47,10 @@ const (
 	IPCSignalEnd
 )
 
-const IPCCmdFirst = 32
 
+const ipcCmdFirst = 32
+
+/* IPC command reply */
 const (
 	IPCCmdReply = iota
 	IPCCmdError
@@ -54,13 +58,13 @@ const (
 
 /* Signal subsystem methods */
 const (
-	IPCCmdSignal = IPCCmdFirst + iota
+	IPCCmdSignal = ipcCmdFirst + iota
 	IPCCmdBroadcast
 )
 
 /* Main methods */
 const (
-	IPCCmdHello = IPCCmdFirst + iota
+	IPCCmdHello = ipcCmdFirst + iota
 	IPCCmdQuit
 	IPCCmdPluginList
 	IPCCmdStats
@@ -68,109 +72,110 @@ const (
 
 /* Playlist methods */
 const (
-	IPCCmdREPLACE = IPCCmdFirst + iota
-	IPCCmdSETPOS
-	IPCCmdSETPOSREL
-	IPCCmdADDURL
-	IPCCmdADDCOLL
-	IPCCmdREMOVEENTRY
-	IPCCmdMOVEENTRY
-	IPCCmdLIST
-	IPCCmdCURRENTPOS
-	IPCCmdCURRENTACTIVE
-	IPCCmdINSERTURL
-	IPCCmdINSERTCOLL
-	IPCCmdLOAD
-	IPCCmdRADD
-	IPCCmdRINSERT
+	IPCCmdReplace = ipcCmdFirst + iota
+	IPCCmdSetpOS
+	IPCCmdSetpOSRel
+	IPCCmdAddURL
+	IPCCmdAddColl
+	IPCCmdRemoveEntry
+	IPCCmdMoveEntry
+	IPCCmdList
+	IPCCmdCurrentPos
+	IPCCmdCurrentActive
+	IPCCmdInsertURL
+	IPCCmdInsertColl
+	IPCCmdLoad
+	IPCCmdRAdd
+	IPCCmdRInsert
 )
 
 /* Config methods */
 const (
-	IPCCmdGETVALUE = IPCCmdFirst + iota
-	IPCCmdSETVALUE
-	IPCCmdREGVALUE
-	IPCCmdLISTVALUES
+	IPCCmdGetValue = ipcCmdFirst + iota
+	IPCCmdSetValue
+	IPCCmdRegValue
+	IPCCmdListValues
 )
 
-/* playback methods */
+/* Playback methods */
 const (
-	IPCCmdSTART = IPCCmdFirst + iota
-	IPCCmdSTOP
-	IPCCmdPAUSE
-	IPCCmdDECODERKILL
-	IPCCmdCPLAYTIME
-	IPCCmdSEEKMS
-	IPCCmdSEEKSAMPLES
-	IPCCmdPLAYBACKSTATUS
-	IPCCmdCURRENTID
-	IPCCmdVOLUMESET
-	IPCCmdVOLUMEGET
+	IPCCmdStart = ipcCmdFirst + iota
+	IPCCmdStop
+	IPCCmdPausE
+	IPCCmdDecoderKill
+	IPCCmdCPlaytime
+	IPCCmdSeekMS
+	IPCCmdSeekSamples
+	IPCCmdPlaybackStatus
+	IPCCmdCurrentID
+	IPCCmdVolumeSet
+	IPCCmdVolumeGet
 )
 
 /* Medialib methods */
 const (
-	IPCCmdINFO = IPCCmdFirst + iota
-	IPCCmdPATHIMPORT
-	IPCCmdREHASH
-	IPCCmdGETID
-	IPCCmdREMOVEID
-	IPCCmdPROPERTYSETSTR
-	IPCCmdPROPERTYSETINT
-	IPCCmdPROPERTYREMOVE
-	IPCCmdMOVEURL
-	IPCCmdMLIBADDURL
+	IPCCmdInfo = ipcCmdFirst + iota
+	IPCCmdPathImport
+	IPCCmdRehash
+	IPCCmdGetID
+	IPCCmdRemoveID
+	IPCCmdPropertySetStr
+	IPCCmdPropertySetInt
+	IPCCmdPropertyRemove
+	IPCCmdMoveURL
+	IPCCmdMlibAddURL
 )
 
 /* Coll sync methods */
 const (
-	IPCCmdCOLLSYNCSYNC = IPCCmdFirst + iota
+	IPCCmdCollSyncSync = ipcCmdFirst + iota
 )
 
 /* Collection methods */
 const (
-	IPCCmdCOLLECTIONGET = IPCCmdFirst + iota
-	IPCCmdCOLLECTIONLIST
-	IPCCmdCOLLECTIONSAVE
-	IPCCmdCOLLECTIONREMOVE
-	IPCCmdCOLLECTIONFIND
-	IPCCmdCOLLECTIONRENAME
-	IPCCmdQUERY
-	IPCCmdQUERYINFOS
-	IPCCmdIDLISTFROMPLS
+	IPCCmdCollectionGet = ipcCmdFirst + iota
+	IPCCmdCollectionList
+	IPCCmdCollectionSave
+	IPCCmdCollectionRemove
+	IPCCmdCollectionFind
+	IPCCmdCollectionRename
+	IPCCmdQuery
+	IPCCmdQueryInfos
+	IPCCmdIDListFromPLS
 )
 
 /* bindata methods */
 const (
-	IPCCmdGETDATA = IPCCmdFirst + iota
-	IPCCmdADDDATA
-	IPCCmdREMOVEDATA
-	IPCCmdLISTDATA
+	IPCCmdGetData = ipcCmdFirst + iota
+	IPCCmdAddData
+	IPCCmdRemoveData
+	IPCCmdListData
 )
 
 /* visualization methods */
 const (
-	IPCCmdVISUALIZATIONQUERYVERSION = IPCCmdFirst + iota
-	IPCCmdVISUALIZATIONREGISTER
-	IPCCmdVISUALIZATIONINITSHM
-	IPCCmdVISUALIZATIONINITUDP
-	IPCCmdVISUALIZATIONPROPERTY
-	IPCCmdVISUALIZATIONPROPERTIES
-	IPCCmdVISUALIZATIONSHUTDOWN
+	IPCCmdVisualizationQueryVersion = ipcCmdFirst + iota
+	IPCCmdVisualizationRegister
+	IPCCmdVisualizationInitSHM
+	IPCCmdVisualizationInitUDP
+	IPCCmdVisualizationProperty
+	IPCCmdVisualizationProperties
+	IPCCmdVisualizationShutdown
 )
 
 /* xform methods */
 const (
-	IPCCmdBROWSE = IPCCmdFirst + iota
+	IPCCmdBrowse = ipcCmdFirst + iota
 )
 
 /* courier methods */
 const (
-	IPCCmdSendMessage = IPCCmdFirst + iota
+	IPCCmdSendMessage = ipcCmdFirst + iota
 	IPCCmdReplyMessage
 	IPCCmdGetConnectedClients
 )
 
+/* Playlist changed events */
 const (
 	PlaylistChangedAdd = iota
 	PlaylistChangedInsert
@@ -183,6 +188,7 @@ const (
 	PlaylistChangedReplace
 )
 
+/* Collection changed events */
 const (
 	CollectionChangedAdd = iota
 	CollectionChangedUpdate
@@ -190,28 +196,33 @@ const (
 	CollectionChangedRemove
 )
 
+/* Playlist current ID methods */
 const (
 	PlaylistCurrentIDForget = iota
 	PlaylistCurrentIDKeep
 	PlaylistCurrentIDMoveToFront
 )
 
+/* Playback status */
 const (
 	PlaybackStatusStop = iota
 	PlaybackStatusPlay
 	PlaybackStatusPause
 )
 
+/* Playback seek */
 const (
 	PlaybackSeekCur = 1 + iota
 	PlaybackSeekSet
 )
 
+/* Media info reader status */
 const (
 	MediaInfoReaderStatusIdle = iota
 	MediaInfoReaderStatusRunning
 )
 
+/* Plugin type */
 const (
 	PluginTypeAll = iota
 	PluginTypeOutput
@@ -241,6 +252,7 @@ const (
 	CollectionTypeLast = CollectionTypeIDList
 )
 
+/* Medialib entry status */
 const (
 	MedialibEntryStatusNew = iota
 	MedialibEntryStatusOK
@@ -249,6 +261,7 @@ const (
 	MedialibEntryStatusRehash
 )
 
+/* Log level */
 const (
 	LogLevelUnknown = iota
 	LogLevelFatal
@@ -259,6 +272,7 @@ const (
 	LogLevelCount /* must be last */
 )
 
+/* C2C reply policy */
 const (
 	C2CReplyPolicyNoReply = iota
 	C2CReplyPolicySingleReply
