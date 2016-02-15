@@ -22,24 +22,40 @@ import (
 	"errors"
 	"fmt"
 	"unsafe"
-    //"sync"
+	//"sync"
 )
 
 const (
-    ResultClassDefault = iota
-    ResultClassSignal
-    ResultClassBroadcast
+	ResultClassDefault = iota
+	ResultClassSignal
+	ResultClassBroadcast
 )
 
-// DisconnectFunc means origin
-//    typedef void (*xmmsc_disconnect_func_t) (void *user_data);
+/*
+DisconnectFunc means origin
+    typedef void (*xmmsc_disconnect_func_t) (void *user_data);
+
+To convert interface{} to a struct, use:
+    foo := (*Foo)(v.(unsafe.Pointer))
+*/
 type DisconnectFunc func(interface{})
 
-// UserDataFreeFunc means origin
-//    typedef void (*xmmsc_user_data_free_func_t) (void *user_data);
+/*
+UserDataFreeFunc means origin
+    typedef void (*xmmsc_user_data_free_func_t) (void *user_data);
+
+To convert interface{} to a struct, use:
+    foo := (*Foo)(v.(unsafe.Pointer))
+*/
 type UserDataFreeFunc func(interface{})
-// IONeedOutCallbackFunc means origin
-//    typedef void (*xmmsc_io_need_out_call_back_func_t) (int, void*);
+
+/*
+IONeedOutCallbackFunc means origin
+    typedef void (*xmmsc_io_need_out_call_back_func_t) (int, void*);
+
+To convert interface{} to a struct, use:
+    foo := (*Foo)(v.(unsafe.Pointer))
+*/
 type IONeedOutCallbackFunc func(int, interface{})
 
 var disconnectFunc DisconnectFunc
@@ -47,21 +63,21 @@ var userDataFreeFunc UserDataFreeFunc
 var ioNeedOutCallbackFunc IONeedOutCallbackFunc
 
 //export callDisconnectFunc
-func callDisconnectFunc(p unsafe.Pointer){
-    v := *(*interface{})(p)
-    disconnectFunc(v)
+func callDisconnectFunc(p unsafe.Pointer) {
+	v := (interface{})(p)
+	disconnectFunc(v)
 }
 
 //export callUserDataFreeFunc
-func callUserDataFreeFunc(p unsafe.Pointer){
-    v := *(*interface{})(p)
-    userDataFreeFunc(v)
+func callUserDataFreeFunc(p unsafe.Pointer) {
+	v := (interface{})(p)
+	userDataFreeFunc(v)
 }
 
 //export callIONeedOutCallbackFunc
-func callIONeedOutCallbackFunc(i C.int, p unsafe.Pointer){
-    v := *(*interface{})(p)
-    ioNeedOutCallbackFunc(int(i), v)
+func callIONeedOutCallbackFunc(i C.int, p unsafe.Pointer) {
+	v := (interface{})(p)
+	ioNeedOutCallbackFunc(int(i), v)
 }
 
 type Connector struct {
