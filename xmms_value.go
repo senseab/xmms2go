@@ -48,6 +48,9 @@ func NewValueFromNone() ValueNone {
 	return vn
 }
 
+// Since Go 1.6, some Go pointer based type
+// (like map[int]) may cause cgo panic.
+// So return ValueNone.
 func NewValueFromAny(any interface{}) ValueAny {
 	x := new(Value)
 	// OK, <nil> may cause panic, so we need to make a none value.
@@ -155,16 +158,7 @@ func NewValueFromAny(any interface{}) ValueAny {
 				break
 			}
 
-			// Map[other]
-			matched, err = regexp.MatchString("^map\\[", _type.String())
-			if err != nil {
-				x = NewValueFromNone().ToValue()
-				break
-			}
-			if matched {
-				x.data = (*C.xmmsv_t)(unsafe.Pointer(&any))
-				break
-			}
+            x = NewValueFromNone().ToValue()
 		}
 	}
 

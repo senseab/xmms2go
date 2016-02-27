@@ -8,13 +8,59 @@ package xmms2go
 #include <xmmsclient/xmmsclient.h>
 #include <malloc.h>
 
-static void callDisconnectFunc(void*);
-static void callUserDataFreeFunc(void*);
-static void callIONeedOutCallbackFunc(int, void*);
+void callLockFunc(void*);
+void callUnlockFunc(void*);
+void callDisconnectFunc(void*);
+void callUserDataFreeFunc(void*);
+void callIONeedOutCallbackFunc(int, void*);
 
 static int macro_xmmsc_result_iserror(xmmsc_result_t *val) {
     return xmmsc_result_iserror(val);
 }
+
+static void xmmsc_lock_set_wrapper(
+    xmmsc_connection_t *conn,
+    void *lock
+) {
+    xmmsc_lock_set(conn, lock, callLockFunc, callUnlockFunc);
+}
+
+static void xmmsc_disconnect_callback_set_wrapper(
+    xmmsc_connection_t *conn,
+    void *userdata
+) {
+    xmmsc_disconnect_callback_set(conn, callDisconnectFunc, userdata);
+}
+
+static void xmmsc_disconnect_callback_set_full_wrapper(
+    xmmsc_connection_t *conn,
+    void *userdata
+) {
+    xmmsc_disconnect_callback_set_full(
+        conn, callDisconnectFunc,
+        userdata,
+        callUserDataFreeFunc
+    );
+}
+
+static void xmmsc_io_need_out_callback_set_wrapper(
+    xmmsc_connection_t *conn,
+    void *userdata
+){
+    xmmsc_io_need_out_callback_set(conn, callIONeedOutCallbackFunc, userdata);
+}
+
+static void xmmsc_io_need_out_callback_set_full_wrapper(
+    xmmsc_connection_t *conn,
+    void *userdata
+){
+    xmmsc_io_need_out_callback_set_full(
+        conn, callIONeedOutCallbackFunc,
+        userdata, callUserDataFreeFunc
+    );
+}
+
+
 #endif
 */
 import "C"
@@ -30,6 +76,20 @@ const (
 	ResultClassSignal
 	ResultClassBroadcast
 )
+
+/*
+LockFunc means origin
+    void (*lockfunc)(void *)
+at xmms_client.h: 50
+*/
+type LockFunc func(interface{})
+
+/*
+UnlockFunc means origin
+    void (*unlockfunc)(void *)
+at xmms_client.h: 50
+*/
+type UnlockFunc func(interface{})
 
 /*
 DisconnectFunc means origin
@@ -58,9 +118,23 @@ To convert interface{} to a struct, use:
 */
 type IONeedOutCallbackFunc func(int, interface{})
 
+var lockFunc LockFunc
+var unlockFunc UnlockFunc
 var disconnectFunc DisconnectFunc
 var userDataFreeFunc UserDataFreeFunc
 var ioNeedOutCallbackFunc IONeedOutCallbackFunc
+
+//export callLockFunc
+func callLockFunc(p unsafe.Pointer) {
+	v := (interface{})(p)
+	lockFunc(v)
+}
+
+//export callUnlockFunc
+func callUnlockFunc(p unsafe.Pointer) {
+	v := (interface{})(p)
+	unlockFunc(v)
+}
 
 //export callDisconnectFunc
 func callDisconnectFunc(p unsafe.Pointer) {
@@ -78,6 +152,14 @@ func callUserDataFreeFunc(p unsafe.Pointer) {
 func callIONeedOutCallbackFunc(i C.int, p unsafe.Pointer) {
 	v := (interface{})(p)
 	ioNeedOutCallbackFunc(int(i), v)
+}
+
+func GetUserConfDir(b []byte) string {
+	pb := (*C.char)((unsafe.Pointer)(&b[0]))
+	length := len(b)
+	c := C.xmmsc_userconfdir_get(pb, (C.int)(length))
+	defer C.free((unsafe.Pointer)(c))
+	return C.GoString(c)
 }
 
 type Connector struct {
@@ -109,32 +191,73 @@ func (c *Connector) UnRef() {
 	C.xmmsc_unref(c.export())
 }
 
-// Dummy
-func (c *Connector) LockSet() {
+// Actually, Use native sync.Mutex is better
+func (c *Connector) LockSet(
+	lock interface{},
+	lockfunc LockFunc,
+	unlockfunc UnlockFunc,
+) {
+	lockFunc = lockfunc
+	unlockFunc = unlockfunc
+
+	C.xmmsc_lock_set_wrapper(c.connection, lock)
 }
 
-// Dummy
-func (c *Connector) DisconnectCallBackSet() {
+// When use this in parallel, a lock is needed.
+func (c *Connector) DisconnectCallBackSet(
+	disconnectfunc DisconnectFunc,
+	userdata interface{},
+) {
+	disconnectFunc = disconnectfunc
+	C.xmmsc_disconnect_callback_set_wrapper(c.connection, userdata)
 }
 
-// Dummy
-func (c *Connector) DisconnectCallBackSetFull() {
+// When use this in parallel, a lock is needed.
+func (c *Connector) DisconnectCallBackSetFull(
+	disconnectfunc DisconnectFunc,
+	userdata interface{},
+	userdatafreefunc UserDataFreeFunc,
+) {
+	disconnectFunc = disconnectfunc
+	userDataFreeFunc = userdatafreefunc
+	C.xmmsc_disconnect_callback_set_full_wrapper(
+		c.connection,
+		userdata,
+	)
 }
 
-// Dummy
-func (c *Connector) IONeedOutCallBackSet() {
+// When use this in parallel, a lock is needed.
+func (c *Connector) IONeedOutCallbackSet(
+	ioneedoutcallback IONeedOutCallbackFunc,
+	userdata interface{},
+) {
+	ioNeedOutCallbackFunc = ioneedoutcallback
+	C.xmmsc_io_need_out_callback_set_wrapper(
+		c.connection,
+		userdata,
+	)
 }
 
-// Dummy
-func (c *Connector) IONeedOutCallBackSetFull() {
+// When use this in parallel, a lock is needed.
+func (c *Connector) IONeedOutCallbackSetFull(
+	ioneedoutcallback IONeedOutCallbackFunc,
+	userdata interface{},
+	userdatafreefunc UserDataFreeFunc,
+) {
+	ioNeedOutCallbackFunc = ioneedoutcallback
+	userDataFreeFunc = userdatafreefunc
+	C.xmmsc_io_need_out_callback_set_full_wrapper(
+		c.connection,
+		userdata,
+	)
 }
 
 func (c *Connector) IODisconnect() {
-	C.xmmsc_io_disconnect(c.export())
+	C.xmmsc_io_disconnect(c.connection)
 }
 
 func (c *Connector) IOWantOut() error {
-	r := C.xmmsc_io_want_out(c.export())
+	r := C.xmmsc_io_want_out(c.connection)
 	if int(r) == 0 {
 		return fmt.Errorf("IO Want Out failed")
 	}

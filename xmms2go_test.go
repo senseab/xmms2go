@@ -77,16 +77,6 @@ func TestValue(t *testing.T) {
 	// Holy! Go type interface{} is Okay!
 	t.Log("Got test anytype value: func() ->", vao.(func() string)())
 
-	tm := make(map[int]interface{})
-	tm[0] = "ABC"
-	vm := NewValueFromAny(tm)
-	defer vm.Unref()
-	vmo, err := vm.GetAny()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log("Got test map[int]:", vmo)
-
 }
 
 func TestList(t *testing.T) {
