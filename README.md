@@ -8,16 +8,10 @@ A golang binding to libxmmsclient.
 Notice
 -----
 
-We need so much work todo:
+Yep, there is still lots of heavy work to do.
 
-* Medialib
-* Config
-* Playlist
-* PlayBack (play pause stop tickle is okay)
-* Stats
-* Visualization
-* C2C
-* Service
+Such as C callback func and finally XmmsClient
 
-Em, I wish someone could convert xmmsdict and xmmslist to Go map and slice, for my poor C skill.
+There may not be useful
 
+may be i will transfer this project to my group nonameplayer

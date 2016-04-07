@@ -158,7 +158,7 @@ func NewValueFromAny(any interface{}) ValueAny {
 				break
 			}
 
-            x = NewValueFromNone().ToValue()
+			x = NewValueFromNone().ToValue()
 		}
 	}
 
